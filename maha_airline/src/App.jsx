@@ -23,7 +23,7 @@ function App() {
         <style>
           {`
             body {
-              background-color: black;
+              //background-color: black;
               margin: 0;
               overflow-x: hidden;
             }

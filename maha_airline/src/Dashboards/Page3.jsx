@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 
+import FinalPage from './FinalPage'; // Import the FinalPage component
+
 const Page3 = () => {
   const [cookies, setCookie] = useCookies(['bookingData']);
   const storedData = cookies['bookingData'];
@@ -30,13 +32,13 @@ const Page3 = () => {
     try {
       // Save seatDetails to cookies
       setCookie('bookingData', { ...storedData, seatDetails });
-
+  
       // Assuming 'userId' is stored in the session storage
       const userId = sessionStorage.getItem('userId');
-
+  
       // Create a single object to hold combined data for all passengers and seats
       const combinedData = {
-        status: 'booked',
+        status: 'booked', // Add the status property
         bookingType: 'oneway',
         userId: userId, // You may replace this with the actual userId
         scheduleId: storedData.scheduleId, // Use the scheduleId from storedData
@@ -46,11 +48,12 @@ const Page3 = () => {
           name: storedData.passengerDetails[index].name,
           age: storedData.passengerDetails[index].age,
           gender: storedData.passengerDetails[index].gender,
+          // Add additional properties as needed (status, userId, etc.)
         })),
       };
-
+  
       console.log('Combined Data:', combinedData);
-
+  
       // Perform API request with the combined data
       const response = await fetch(
         'https://localhost:7124/api/BookingFlightTicket/PostBookingFlightTicket',
@@ -62,20 +65,17 @@ const Page3 = () => {
           body: JSON.stringify(combinedData),
         }
       );
-
-      if (response.ok) {
-        console.log('Booking submitted successfully!');
-        // Additional handling for success
-        navigate('/FinalPage'); // Redirect to the final page
-      } else {
-        const errorData = await response.json();
-        console.error('Booking submission failed:', errorData);
-        // Additional handling for failure
-      }
+  
+      // Rest of the code...
     } catch (error) {
       console.error('Error during booking submission:', error);
     }
   };
+  
+  // Render the FinalPage component if it's available in the location state
+  if (location.state && location.state.bookingDetails) {
+    return <FinalPage bookingDetails={location.state.bookingDetails} />;
+  }
 
   return (
     <div>
