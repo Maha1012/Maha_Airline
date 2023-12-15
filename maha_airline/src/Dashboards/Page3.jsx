@@ -7,18 +7,33 @@ import FinalPage from './FinalPage'; // Import the FinalPage component
 const Page3 = () => {
   const [cookies, setCookie] = useCookies(['bookingData']);
   const storedData = cookies['bookingData'];
-  const initialPassengerCount = storedData?.passengerCount || 0;
+  const initialPassengerCount = cookies.passengerCount || 0;
   const [seatDetails, setSeatDetails] = useState(
     Array.from({ length: initialPassengerCount }, () => ({ seatNo: '' }))
   );
+  const [availableSeats, setAvailableSeats] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const newPassengerCount = storedData?.passengerCount || 0;
-    if (newPassengerCount !== seatDetails.length) {
-      setSeatDetails(Array.from({ length: newPassengerCount }, () => ({ seatNo: '' })));
-    }
-  }, [storedData?.passengerCount, seatDetails.length]);
+    const newPassengerCount = cookies.passengerCount || 0;
+    const numScheduleIds = Object.keys(storedData).filter((key) => key.startsWith('scheduleId')).length;
+
+    // Fetch available seats for a specific scheduleId (e.g., scheduleId: 63)
+    const fetchAvailableSeats = async () => {
+      try {
+        const response = await fetch(`https://localhost:7124/api/Seats/ByScheduleId/63`);
+        const data = await response.json();
+
+        // Assuming the response has a structure like { seats: [...] }
+        setAvailableSeats(data.seats || []);
+      } catch (error) {
+        console.error('Error fetching available seats:', error);
+      }
+    };
+
+    // Fetch available seats when the component mounts
+    fetchAvailableSeats();
+  }, [cookies.passengerCount, storedData]);
 
   const handleSeatNoChange = (index, value) => {
     setSeatDetails((prev) => [
@@ -30,6 +45,8 @@ const Page3 = () => {
 
   const handleSubmit = async () => {
     try {
+      const newPassengerCount = cookies.passengerCount || 0;
+  
       // Save seatDetails to cookies
       setCookie('bookingData', { ...storedData, seatDetails });
   
@@ -38,18 +55,22 @@ const Page3 = () => {
   
       // Create a single object to hold combined data for all passengers and seats
       const combinedData = {
-        status: 'booked', // Add the status property
+        status: 'booked',
         bookingType: 'oneway',
-        userId: userId, // You may replace this with the actual userId
-        scheduleId: storedData.scheduleId, // Use the scheduleId from storedData
-        seatDetails: seatDetails.map((seat, index) => ({
-          scheduleId: storedData.scheduleId,
-          seatNo: seat.seatNo,
-          name: storedData.passengerDetails[index].name,
-          age: storedData.passengerDetails[index].age,
-          gender: storedData.passengerDetails[index].gender,
-          // Add additional properties as needed (status, userId, etc.)
-        })),
+        userId: userId,
+        seatDetails: seatDetails.map((seat, index) => {
+          const scheduleIdIndex = Math.floor(index / newPassengerCount);
+          const seatIndex = index % newPassengerCount;
+          const scheduleIdKey = scheduleIdIndex === 0 ? 'scheduleId' : `scheduleId${scheduleIdIndex}`;
+  
+          return {
+            scheduleId: storedData[scheduleIdKey],
+            seatNo: seat.seatNo,
+            name: storedData.passengerDetails[seatIndex]?.name || 'Unknown',
+            age: storedData.passengerDetails[seatIndex]?.age || 0,
+            gender: storedData.passengerDetails[seatIndex]?.gender || 'Unknown',
+          };
+        }),
       };
   
       console.log('Combined Data:', combinedData);
@@ -72,6 +93,8 @@ const Page3 = () => {
     }
   };
   
+  
+
   // Render the FinalPage component if it's available in the location state
   if (location.state && location.state.bookingDetails) {
     return <FinalPage bookingDetails={location.state.bookingDetails} />;

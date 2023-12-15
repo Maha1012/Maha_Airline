@@ -38,7 +38,7 @@ const Login = () => {
           navigate('/FlightDetails');
         } if (data.role == 'User') {
           // Navigate to the OverallDashboard for other roles
-          navigate('/OverallDashboard');
+          navigate('/BookingForm');
         }
   
         // Store other user information in local storage

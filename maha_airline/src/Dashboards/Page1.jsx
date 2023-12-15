@@ -42,6 +42,10 @@ const Page1 = () => {
     console.log('Date:', date);
   
     if (sourceAirportId && destinationAirportId && date) {
+      setCookie('source', sourceCity);
+      setCookie('destination', destinationCity);
+      setCookie('date', date);
+      setCookie('passengerCount',passengerCount)
       try {
         const formattedDate = new Date(date).toISOString();
         console.log('Formatted Date:', formattedDate);
@@ -53,6 +57,13 @@ const Page1 = () => {
         if (response.ok) {
           const data = await response.json();
           console.log('Fetched Flights:', data);
+          if (data.data.length === 0) {
+            // If no flights are available, redirect to a new page
+            navigate('/ConnectingFlightsPage'); // Replace with the path of the new page
+            return;
+          }
+
+          setFlights(data.data); // Set the flights to the state
           setFlights(data.data); // Set the flights to the state
         } else {
           console.error('Failed to fetch flights');

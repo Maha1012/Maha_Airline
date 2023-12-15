@@ -13,6 +13,8 @@ import Page2 from './Dashboards/Page2';
 import Page3 from './Dashboards/Page3';
 import FinalPage from './Dashboards/FinalPage';
 import ConfirmationPage from './Dashboards/ConfirmationPage';
+import ConnectingFlightsPage from './Dashboards/ConnectingFlights';
+import Page2ConnectingFlights from './Dashboards/Page2ConnectingFlights';
 
 
 function App() {
@@ -43,6 +45,8 @@ function App() {
             <Route path="/Page3" element={<Page3 />} />
             <Route path="/FinalPage" element={<FinalPage />} />
             <Route path="/ConfirmationPage" element={<ConfirmationPage />} />
+            <Route path="/ConnectingFlightsPage" element={<ConnectingFlightsPage />} />
+            <Route path="/Page2ConnectingFlights" element={<Page2ConnectingFlights />} />
             
           </Routes>
         </div>
