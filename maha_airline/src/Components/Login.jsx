@@ -28,14 +28,14 @@ const Login = () => {
   
       console.log('Response status:', response.status); // Log the response status
   
-      if (response.status === 200) {
+      if (response.ok) {
         const data = await response.json();
         console.log(data.role);
   
         // Check if the role is Admin
         if (data.role == 'Admin') {
           // Navigate to the FlightDetails page for Admin
-          navigate('/FlightDetails');
+          navigate('/AdminHome');
         } if (data.role == 'User') {
           // Navigate to the OverallDashboard for other roles
           navigate('/BookingForm');

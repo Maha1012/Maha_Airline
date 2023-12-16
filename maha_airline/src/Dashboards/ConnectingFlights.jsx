@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
-
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
 
 const ConnectingFlightsPage = () => {
   const [cookies, setCookie] = useCookies(['selectedConnectingFlight', 'secondConnectingFlight']);
-  // const navigate = useNavigate();
   const [connectingFlights, setConnectingFlights] = useState([]);
   const [selectedFlight, setSelectedFlight] = useState('');
   const [availableFlights, setAvailableFlights] = useState([]);
   const [selectedAvailableFlight, setSelectedAvailableFlight] = useState('');
-  const [selectedSecondConnectingFlight, setSelectedSecondConnectingFlight] = useState('');
-  const [secondConnectingFlights, setSecondConnectingFlights] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -134,55 +138,65 @@ const ConnectingFlightsPage = () => {
     }
   };
   
-
   return (
-    <div>
-      <h2>Connecting Flights</h2>
+    <div style={{ maxWidth: '600px', margin: 'auto', textAlign: 'center', padding: '20px' }}>
+      <Typography variant="h4" color="primary" gutterBottom>
+        Connecting Flights
+      </Typography>
+
       {connectingFlights.length === 0 ? (
-        <p>No connecting flights available for the provided source and date combination.</p>
+        <Typography variant="body1" color="textSecondary">
+          No connecting flights available for the provided source and date combination.
+        </Typography>
       ) : (
         <div>
-          <label>
-            Select a Connecting Flight:
-            <select onChange={handleSelectConnectingFlight} value={selectedFlight}>
-              <option value="" disabled>
-                -- Select a Flight --
-              </option>
+          <FormControl fullWidth style={{ marginBottom: '20px' }}>
+            <InputLabel>Select a Connecting Flight</InputLabel>
+            <Select
+              value={selectedFlight}
+              onChange={handleSelectConnectingFlight}
+              label="Select a Connecting Flight"
+            >
               {connectingFlights.map((flight) => (
-                <option key={flight.scheduleId} value={flight.scheduleId}>
-                  {`${flight.flightName} - ${new Date(flight.dateTime).toLocaleString()}`}
-                </option>
+                <MenuItem key={flight.scheduleId} value={flight.scheduleId}>
+                  {`${flight.flightName} - ${new Date(flight.dateTime).toLocaleString()} `}
+                </MenuItem>
               ))}
-            </select>
-          </label>
-          <button type="button" onClick={handleConnectingFlightSelect}>
+            </Select>
+          </FormControl>
+
+          <Button variant="contained" color="primary" onClick={handleConnectingFlightSelect}>
             Fetch Cities and Available Flights
-          </button>
-          <button type="button" onClick={handleSaveSelection}>
-            Save Selection
-          </button>
+          </Button>
+
         </div>
       )}
 
       {/* Display available flights */}
       {availableFlights.length > 0 && (
-        <div>
-          <label>
-            Select an Available Flight:
-            <select onChange={handleSelectAvailableFlight} value={selectedAvailableFlight}>
-              <option value="" disabled>
-                -- Select a Flight --
-              </option>
+        <div style={{ marginTop: '30px' }}>
+          <FormControl fullWidth style={{ marginBottom: '20px' }}>
+            <InputLabel>Select an Available Flight</InputLabel>
+            <Select
+              value={selectedAvailableFlight}
+              onChange={handleSelectAvailableFlight}
+              label="Select an Available Flight"
+            >
               {availableFlights.map((flight) => (
-                <option key={flight.scheduleId} value={flight.scheduleId}>
-                  {`${flight.flightName} - ${new Date(flight.dateTime).toLocaleString()}`}
-                </option>
+                <MenuItem key={flight.scheduleId} value={flight.scheduleId}>
+                  {`${flight.flightName} - ${new Date(flight.dateTime).toLocaleString()} `}
+                </MenuItem>
               ))}
-            </select>
-          </label>
-          <button type="button" onClick={handleSaveAvailableFlightSelection}>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSaveAvailableFlightSelection}
+          >
             Save Selection
-          </button>
+          </Button>
         </div>
       )}
     </div>

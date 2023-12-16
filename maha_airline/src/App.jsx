@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 // import Slideshow from './Slideshow';
 import Home from './Home';
+import Layout from './Dashboards/Layout';
 import Login from './Components/Login';
 import Registration from './Components/Registration';
 import FlightDetails from './Dashboards/FlightDetails';
@@ -15,6 +16,9 @@ import FinalPage from './Dashboards/FinalPage';
 import ConfirmationPage from './Dashboards/ConfirmationPage';
 import ConnectingFlightsPage from './Dashboards/ConnectingFlights';
 import Page2ConnectingFlights from './Dashboards/Page2ConnectingFlights';
+import AdminHome from './Dashboards/AdminHome';
+import Header from './Header';
+
 
 
 function App() {
@@ -36,6 +40,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registration" element={<Registration />} />
+            <Route path="/Header" element={<Header />} />
             <Route path="/FlightDetails" element={<FlightDetails />} />
             <Route path="/AirportManagement" element={<AirportManagement />} />
             <Route path="/FlightScheduleManagement" element={<FlightScheduleManagement />} />
@@ -47,7 +52,7 @@ function App() {
             <Route path="/ConfirmationPage" element={<ConfirmationPage />} />
             <Route path="/ConnectingFlightsPage" element={<ConnectingFlightsPage />} />
             <Route path="/Page2ConnectingFlights" element={<Page2ConnectingFlights />} />
-            
+            <Route path="/AdminHome" element={<AdminHome />} />
           </Routes>
         </div>
       

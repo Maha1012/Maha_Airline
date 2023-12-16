@@ -58,6 +58,7 @@ const updatedBookingData = {
   passengerDetails: updatedPassengerDetails,
 };
 
+
 // Update the cookie with the merged data
 setCookie('bookingData', updatedBookingData);
 

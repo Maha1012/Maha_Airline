@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Typography, Button, Box } from '@mui/material';
 import { Person as PersonIcon, AssignmentInd as AssignmentIndIcon } from '@mui/icons-material';
-import backgroundImg from "C:/Users/mahalaxmi.ganesan/source/repos/WebApplication1/medical-banner-with-doctor-wearing-coat.jpg";
+//import backgroundImg from "C:/Users/mahalaxmi.ganesan/OneDrive - psiog.com/Desktop/Maha_Airline/pexels-dids-2510370.jpg";
+
 import Slideshow from './Slideshow'; // Import the Slideshow component
 
 const Home = ({ isAuthenticated }) => {
@@ -18,7 +19,7 @@ const Home = ({ isAuthenticated }) => {
     boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
     margin: '0 auto',
     padding: '20px',
-    backgroundImage: `url(${backgroundImg})`,  // Use backgroundImage property for the background image
+    //backgroundImage: `url(${backgroundImg})`,  // Use backgroundImage property for the background image
     backgroundSize: 'cover',  // or 'contain' based on your preference
     backgroundPosition: 'center center',  // Adjust based on your preference
     color: '#000',
@@ -67,7 +68,7 @@ const Home = ({ isAuthenticated }) => {
 
       <Box sx={containerStyle}>
         <Typography variant="h2" sx={headingStyle}>
-          Welcome to HealthCareStat
+          Welcome to MahaAirlines
         </Typography>
         <Link to="/login" style={{ textDecoration: 'none' }}>
           <Button variant="contained" sx={primaryButtonStyle}>
