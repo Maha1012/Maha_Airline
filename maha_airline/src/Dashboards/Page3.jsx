@@ -18,12 +18,13 @@ const Page3 = () => {
     try {
       let scheduleId = storedData.scheduleId;
       const newScheduleId = localStorage.getItem('newScheduleId');
-      
-      console.log('New Schedule ID from localStorage:', newScheduleId);
-  
-      if (newScheduleId) {
-        scheduleId = newScheduleId;
-      }
+
+console.log('New Schedule ID from localStorage:', newScheduleId);
+
+if (newScheduleId !== null && newScheduleId !== undefined) {
+  scheduleId = newScheduleId;
+}
+
   
       console.log('Fetching seats for scheduleId:', scheduleId);
   
@@ -125,7 +126,10 @@ const Page3 = () => {
       const userId = sessionStorage.getItem('userId');
       const newPassengerCount = cookies.passengerCount || 0;
       const selectedSeats = seatDetails.filter((seat) => seat.seatNo !== null);
-      setCookie('bookingData', { ...storedData, seatDetails: selectedSeats });
+      setCookie('bookingData', {
+        ...storedData,
+        seatDetails: selectedSeats,
+      });
 
       const combinedData = {
         status: 'booked',
@@ -197,11 +201,16 @@ const Page3 = () => {
         console.log('Current Schedule ID:', currentScheduleId);
   
         // Change seat status
-        const status = 'booked';
-        const userId = sessionStorage.getItem('userId');
-        const selectedSeats = seatDetails
-          .filter((seat) => seat.seatNo !== null)
-          .map((seat) => seat.seatNo);
+    const status = 'booked';
+    const userId = sessionStorage.getItem('userId');
+    const selectedSeats = seatDetails
+      .filter((seat) => seat.seatNo !== null)
+      .map((seat) => seat.seatNo);
+    // Store the selected seats in the cookies
+    setCookie('bookingData', {
+      ...storedData,
+      seatDetails: selectedSeats,
+    });
   
         const scheduleId = storedData.scheduleId;
         console.log('API Path Schedule ID Before:', scheduleId);
@@ -218,21 +227,22 @@ const Page3 = () => {
   
         console.log(response);
   
-        // Log the new schedule ID after updating the index
-        setCurrentScheduleIndex((index) => index + 1);
-        const newScheduleIdKey = `scheduleId${currentScheduleIndex + 1}`;
-        const newScheduleId = storedData[newScheduleIdKey];
-        console.log('New Schedule ID:', newScheduleId);
-        localStorage.setItem('newScheduleId',newScheduleId);
-  
-        console.log('API Path Schedule ID After:', newScheduleId);
-  
-        setTimer(50); // Reset the timer for the next schedule
-        fetchAvailableSeats(); // Fetch seats for the next schedule
-      } else {
-        // No more schedules, navigate to the final page
-        navigate('/finalPage');
-      }
+    // Log the new schedule ID after updating the index
+setCurrentScheduleIndex((index) => index + 1);
+localStorage.setItem('newScheduleId', newScheduleId);
+
+// Use the updated state in the callback function
+const newScheduleIdKey = `scheduleId${currentScheduleIndex + 1}`;
+const newScheduleId = storedData[newScheduleIdKey];
+console.log('New Schedule ID:', newScheduleId);
+
+
+console.log('API Path Schedule ID After:', newScheduleId);
+
+setTimer(50); // Reset the timer for the next schedule
+fetchAvailableSeats(); // Fetch seats for the next schedule
+
+      } 
     } catch (error) {
       console.error('Error during booking submission:', error);
     }

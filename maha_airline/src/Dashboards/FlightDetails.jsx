@@ -1,3 +1,5 @@
+// FlightManagement.jsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -12,6 +14,12 @@ import {
   Paper,
   Select,
   MenuItem,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from '@mui/material';
 
 const FlightManagement = () => {
@@ -108,37 +116,58 @@ const FlightManagement = () => {
   return (
     <Container component="main" maxWidth="md" style={{ marginTop: '20px' }}>
       <Paper elevation={3} style={{ padding: '20px', borderRadius: '8px' }}>
-        <Typography variant="h4" gutterBottom>
-          Flight Management
+        <Typography variant="h4" gutterBottom style={{ marginBottom: '20px' }}>
+          <h2>Flight Management</h2>
         </Typography>
 
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '30px' }}>
           <Typography variant="h6" gutterBottom>
             Flight List
           </Typography>
-          <List>
-            {flightDetails.map((flight) => (
-              <ListItem key={flight.flightName}>
-                {flight.flightName} - {flight.flightCapacity} -{' '}
-                {flight.isActive ? 'Active' : 'Inactive'}
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  style={{ marginLeft: '10px' }}
-                  onClick={() => handleEditClick(flight)}
-                >
-                  Edit
-                </Button>
-              </ListItem>
-            ))}
-          </List>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Flight Name</TableCell>
+                  <TableCell>Capacity</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {flightDetails.map((flight) => (
+                  <TableRow key={flight.flightName}>
+                    <TableCell>{flight.flightName}</TableCell>
+                    <TableCell>{flight.flightCapacity}</TableCell>
+                    <TableCell>{flight.isActive ? 'Active' : 'Inactive'}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => handleEditClick(flight)}
+                      >
+                        Edit
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </div>
 
-        <div>
+        <div style={{ marginBottom: '30px' }}>
           <Typography variant="h6" gutterBottom>
             Add New Flight
           </Typography>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+            }}
+          >
             <TextField
               label="Flight Capacity"
               type="number"
@@ -146,7 +175,7 @@ const FlightManagement = () => {
               value={newFlight.flightCapacity}
               onChange={handleInputChange}
               fullWidth
-              margin="normal"
+              variant="outlined"
             />
             <FormControlLabel
               control={
@@ -159,14 +188,8 @@ const FlightManagement = () => {
                 />
               }
               label="Is Active"
-              style={{ marginBottom: '10px' }}
             />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              style={{ marginTop: '20px' }}
-            >
+            <Button type="submit" variant="contained" color="primary">
               Add Flight
             </Button>
           </form>
@@ -176,34 +199,39 @@ const FlightManagement = () => {
           <Button
             variant="contained"
             color="primary"
-            style={{
-              marginTop: '20px',
-            }}
             onClick={handleUpdateFormToggle}
           >
-            Update Form
+            {showUpdateForm ? 'Hide Update Form' : 'Show Update Form'}
           </Button>
 
           {showUpdateForm && (
-            <div>
+            <div style={{ marginTop: '20px' }}>
               <Typography variant="h6" gutterBottom>
                 Update Flight
               </Typography>
-              <form style={{ display: 'flex', flexDirection: 'column' }}>
+              <form
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '20px',
+                }}
+              >
                 <Select
                   label="Flight to Update"
                   value={flightToUpdate}
                   onChange={(e) => setFlightToUpdate(e.target.value)}
                   fullWidth
-                  margin="normal"
+                  variant="outlined"
                 >
                   {flightDetails.map((flight) => (
-                    <MenuItem key={flight.flightName} value={flight.flightName}>
+                    <MenuItem
+                      key={flight.flightName}
+                      value={flight.flightName}
+                    >
                       {flight.flightName}
                     </MenuItem>
                   ))}
                 </Select>
-                {/* Add fields for updating flight details (e.g., flight capacity, isActive) */}
                 <TextField
                   label="New Flight Capacity"
                   type="number"
@@ -211,7 +239,7 @@ const FlightManagement = () => {
                   value={newFlight.flightCapacity}
                   onChange={handleInputChange}
                   fullWidth
-                  margin="normal"
+                  variant="outlined"
                 />
                 <FormControlLabel
                   control={
@@ -219,18 +247,19 @@ const FlightManagement = () => {
                       name="isActive"
                       checked={newFlight.isActive}
                       onChange={() =>
-                        setNewFlight({ ...newFlight, isActive: !newFlight.isActive })
+                        setNewFlight({
+                          ...newFlight,
+                          isActive: !newFlight.isActive,
+                        })
                       }
                     />
                   }
                   label="Is Active"
-                  style={{ marginBottom: '10px' }}
                 />
                 <Button
                   type="button"
                   variant="contained"
                   color="primary"
-                  style={{ marginTop: '20px' }}
                   onClick={handleUpdate}
                 >
                   Update Flight

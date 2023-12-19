@@ -1,10 +1,30 @@
-// AirportManagement.js
+// AirportManagement.jsx
+
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, List, ListItem, TextField, Button, Paper } from '@mui/material';
+import {
+  Container,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Button,
+  Paper,
+  InputAdornment,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 
 const AirportManagement = () => {
   const [airports, setAirports] = useState([]);
+  const [filteredAirports, setFilteredAirports] = useState([]);
   const [newAirport, setNewAirport] = useState({
     airportId: '',
     airportName: '',
@@ -12,12 +32,18 @@ const AirportManagement = () => {
     state: '',
   });
   const [editingAirportId, setEditingAirportId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAirportList, setShowAirportList] = useState(false);
 
   useEffect(() => {
     // Fetch airports when the component mounts
-    axios.get('https://localhost:7124/api/Airports')
-      .then(response => setAirports(response.data))
-      .catch(error => console.error('Error fetching airports:', error));
+    axios
+      .get('https://localhost:7124/api/Airports')
+      .then((response) => {
+        setAirports(response.data);
+        setFilteredAirports(response.data);
+      })
+      .catch((error) => console.error('Error fetching airports:', error));
   }, []);
 
   const handleInputChange = (e) => {
@@ -26,7 +52,7 @@ const AirportManagement = () => {
   };
 
   const handleEditClick = (id) => {
-    const airportToEdit = airports.find(airport => airport.airportId === id);
+    const airportToEdit = airports.find((airport) => airport.airportId === id);
     setEditingAirportId(id);
     setNewAirport({ ...airportToEdit });
   };
@@ -47,7 +73,10 @@ const AirportManagement = () => {
     try {
       if (editingAirportId) {
         // Update existing airport details
-        await axios.put(`https://localhost:7124/api/Airports/${editingAirportId}`, newAirport);
+        await axios.put(
+          `https://localhost:7124/api/Airports/${editingAirportId}`,
+          newAirport
+        );
       } else {
         // Post new airport details
         await axios.post('https://localhost:7124/api/Airports', newAirport);
@@ -56,6 +85,7 @@ const AirportManagement = () => {
       // Refresh the airport list after posting/editing
       const response = await axios.get('https://localhost:7124/api/Airports');
       setAirports(response.data);
+      setFilteredAirports(response.data);
 
       // Reset the form fields
       setEditingAirportId(null);
@@ -70,6 +100,22 @@ const AirportManagement = () => {
     }
   };
 
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = airports.filter(
+      (airport) =>
+        airport.airportName.toLowerCase().includes(term) ||
+        airport.city.toLowerCase().includes(term) ||
+        airport.state.toLowerCase().includes(term)
+    );
+    setFilteredAirports(filtered);
+  };
+
+  const toggleAirportList = () => {
+    setShowAirportList(!showAirportList);
+  };
+
   return (
     <Container component="main" maxWidth="md" style={{ marginTop: '20px' }}>
       <Paper elevation={3} style={{ padding: '20px', borderRadius: '8px' }}>
@@ -77,22 +123,65 @@ const AirportManagement = () => {
           Airport Management
         </Typography>
 
-        <div>
-          <Typography variant="h6" gutterBottom>
-            Airport List
-          </Typography>
-          <List>
-            {airports.map(airport => (
-              <ListItem key={airport.airportId}>
-                {airport.airportId} - {airport.airportName}
-                {airport.city} - {airport.city}
-                {airport.state} - {airport.state}
-                <Button onClick={() => handleEditClick(airport.airportId)} style={{ marginLeft: '10px' }}>
-                  Edit
-                </Button>
-              </ListItem>
-            ))}
-          </List>
+        <div style={{ marginBottom: '20px' }}>
+          <Accordion expanded={showAirportList} onChange={toggleAirportList}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="h6">Airport List</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <div style={{ width: '100%' }}>
+                <TextField
+                  label="Search"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+                {showAirportList && (
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Airport ID</TableCell>
+                          <TableCell>Airport Name</TableCell>
+                          <TableCell>City</TableCell>
+                          <TableCell>State</TableCell>
+                          
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {filteredAirports.map((airport) => (
+                          <TableRow key={airport.airportId}>
+                            <TableCell>{airport.airportId}</TableCell>
+                            <TableCell>{airport.airportName}</TableCell>
+                            <TableCell>{airport.city}</TableCell>
+                            <TableCell>{airport.state}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={() => handleEditClick(airport.airportId)}
+                              >
+                                Edit
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </div>
+            </AccordionDetails>
+          </Accordion>
         </div>
 
         <div style={{ marginTop: '20px' }}>
@@ -139,7 +228,12 @@ const AirportManagement = () => {
             />
 
             {/* Add other input fields if needed */}
-            <Button type="submit" variant="contained" color="primary" style={{ marginTop: '20px', marginRight: '10px' }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              style={{ marginTop: '20px', marginRight: '10px' }}
+            >
               {editingAirportId ? 'Save Changes' : 'Add Airport'}
             </Button>
             {editingAirportId && (

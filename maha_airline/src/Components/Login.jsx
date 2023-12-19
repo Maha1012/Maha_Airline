@@ -60,11 +60,11 @@ const Login = () => {
     <Container component="main" maxWidth="xs" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <Paper elevation={3} style={{ padding: '20px', borderRadius: '10px', width: '100%' }}>
         <Typography variant="h5" align="center" color="primary">
-          Welcome to HealthCareStat
+          Welcome to MahaAirline's
         </Typography>
         <form>
           <TextField
-            label="Email"
+            label="Username"
             fullWidth
             variant="outlined"
             margin="normal"

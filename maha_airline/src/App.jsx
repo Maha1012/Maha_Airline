@@ -18,6 +18,8 @@ import ConnectingFlightsPage from './Dashboards/ConnectingFlights';
 import Page2ConnectingFlights from './Dashboards/Page2ConnectingFlights';
 import AdminHome from './Dashboards/AdminHome';
 import Header from './Header';
+import UserHistory from './Dashboards/UserHistory';
+
 
 
 
@@ -53,6 +55,7 @@ function App() {
             <Route path="/ConnectingFlightsPage" element={<ConnectingFlightsPage />} />
             <Route path="/Page2ConnectingFlights" element={<Page2ConnectingFlights />} />
             <Route path="/AdminHome" element={<AdminHome />} />
+            <Route path="/UserHistory" element={<UserHistory />} />
           </Routes>
         </div>
       
