@@ -46,7 +46,7 @@ const FlightScheduleManagement = () => {
   useEffect(() => {
     // Fetch flight schedules when the component mounts
     axios
-      .get('https://localhost:7124/api/FlightSchedules')
+      .get('http://192.168.10.63:91/api/FlightSchedules')
       .then((response) => {
         setFlightSchedules(response.data);
         setFilteredFlightSchedules(response.data);
@@ -55,13 +55,13 @@ const FlightScheduleManagement = () => {
 
     // Fetch flight details when the component mounts
     axios
-      .get('https://localhost:7124/GetFlightDetails')
+      .get('http://192.168.10.63:91/GetFlightDetails')
       .then((response) => setFlightDetails(response.data))
       .catch((error) => console.error('Error fetching flight details:', error));
 
     // Fetch airports when the component mounts
     axios
-      .get('https://localhost:7124/api/Airports')
+      .get('http://192.168.10.63:91/api/Airports')
       .then((response) => setAirports(response.data))
       .catch((error) => console.error('Error fetching airports:', error));
   }, []);
@@ -110,7 +110,7 @@ const FlightScheduleManagement = () => {
       const responses = await Promise.all(
         schedules.map((schedule) =>
           axios.post(
-            'https://localhost:7124/api/FlightSchedules/CreateSchedule',
+            'http://192.168.10.63:91/api/FlightSchedules/CreateSchedule',
             schedule
           )
         )
@@ -149,7 +149,7 @@ const FlightScheduleManagement = () => {
 
   return (
     <Container component="main" maxWidth="md" style={{ marginTop: '20px' }}>
-      <Paper elevation={3} style={{ padding: '20px', borderRadius: '8px' }}>
+      <Paper elevation={3} style={{ padding: '80px', borderRadius: '8px' }}>
         <Typography variant="h4" gutterBottom>
           Flight Schedule Management
         </Typography>
@@ -184,7 +184,7 @@ const FlightScheduleManagement = () => {
                           <TableCell>Flight Name</TableCell>
                           <TableCell>Flight Duration</TableCell>
                           <TableCell>Date and Time</TableCell>
-                          <TableCell>Action</TableCell>
+                          
                         </TableRow>
                       </TableHead>
                       <TableBody>

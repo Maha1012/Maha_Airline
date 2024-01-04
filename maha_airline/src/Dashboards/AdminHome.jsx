@@ -49,6 +49,13 @@ const AdminHome = () => {
     boxShadow: '0 3px 5px 2px rgba(33, 203, 243, 0.3)',
   };
 
+  const userHistoryButtonStyle = {
+    textDecoration: 'none',
+    color: '#fff',
+    margin: '10px',
+    fontSize: '1.5rem',
+  };
+
   return (
     <Layout>
       <Box sx={containerStyle}>
@@ -68,6 +75,12 @@ const AdminHome = () => {
         <Link to="/FlightScheduleManagement" style={linkStyle}>
           <Button variant="contained" sx={buttonStyle}>
             Flight Schedule Management
+          </Button>
+        </Link>
+        {/* User History Button */}
+        <Link to="/UserHistoryForAdmin" style={userHistoryButtonStyle}>
+          <Button variant="contained" sx={buttonStyle}>
+            User History
           </Button>
         </Link>
       </Box>

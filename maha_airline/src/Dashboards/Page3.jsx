@@ -2,88 +2,219 @@ import React, { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { airlinesapi } from '../constants';
+import Layout from './Layout';
+import { Button, Grid, Paper, Typography } from '@mui/material';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+
 
 const Page3 = () => {
   const [cookies, setCookie] = useCookies(['bookingData', 'selectedSeats']);
   const storedData = cookies['bookingData'];
   const [availableSeats, setAvailableSeats] = useState([]);
   const [seatDetails, setSeatDetails] = useState([]);
-  const [timer, setTimer] = useState(50); // 300 seconds = 5 minutes
+  const [timer, setTimer] = useState(30); // 300 seconds = 5 minutes
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0);
   const navigate = useNavigate();
   const scheduleIds = Object.keys(storedData).filter(key => key.startsWith('scheduleId'));
-  const [seatsFetched, setSeatsFetched] = useState(false); // New state to track seat fetching
-
+  const [seatsFetched, setSeatsFetched] = useState(false);
+  // const [FirstAvailableSeats,setFirstAvailableSeats] = useState([]);
 
   useEffect(() => {
     if (storedData.scheduleId && !seatsFetched) {
-      setCurrentScheduleIndex(1);
-      fetchAvailableSeats(); // Fetch seats for the initial schedule
+      setCurrentScheduleIndex(currentScheduleIndex + 1);
+      fetchAvailableSeats();
     }
   }, [storedData.scheduleId, seatsFetched]);
-  
+
   const fetchAvailableSeats = async () => {
     try {
-      const currentScheduleIdKey = scheduleIds[currentScheduleIndex];
-      const scheduleId = storedData[currentScheduleIdKey];
-      
-      console.log(`Fetching seats for scheduleId: ${scheduleId}`);
-      
-      const response = await axios.get(`https://localhost:7124/api/Seats/ByScheduleId/${scheduleId}`);
-      const data = response.data;
-
-      // Process the fetched data, set state, etc.
-      setAvailableSeats(data || []);
-      setSeatDetails(Array.from({ length: data.length }, () => ({ seatNo: null })));
-
-      setSeatsFetched(true);
+      const scheduleId = localStorage.getItem('scheduleId');
+  
+      if (currentScheduleIndex === 0) {
+        const token = sessionStorage.getItem('Token');
+  
+        const response = await axios.get(`http://192.168.10.63:91/api/Seats/ByScheduleId/${scheduleId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        const initialSeats = response.data;
+        console.log('initialSeats', initialSeats);
+  
+        setAvailableSeats(initialSeats || []);
+        setSeatDetails(Array.from({ length: initialSeats.length }, () => ({ seatNo: null })));
+        setSeatsFetched(true);
+  
+        console.log(`Seats for scheduleId ${scheduleId}:`, initialSeats);
+      }
+  
+      // Fetch seats for the new scheduleId if available and after clicking the "Next" button
+      const newScheduleId = localStorage.getItem('newScheduleId');
+      console.log(`Fetching seats for newScheduleId: ${newScheduleId}`);
+  
+      if (newScheduleId && currentScheduleIndex !== 0) {
+        const airlineName = localStorage.getItem('airlineName');
+        console.log(airlineName);
+        let partnerSeatsUrl;
+  
+        switch (airlineName) {
+          case 'mahaairline':
+            partnerSeatsUrl = `http://192.168.10.63:91/api/Seats/ByScheduleId/${newScheduleId}`;
+            break;
+          case 'hariniairline':
+            // Assuming Harnia Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.78:89/api/integration/seats/${newScheduleId}`;
+            break;
+          case 'dhanushiyaairline':
+            // Assuming Dhanushiya Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.75:8080/api/integration/seats/${newScheduleId}`;
+            break;
+          case 'vishalairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.51:85/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'sanjayairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.54:88/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'thillaiiairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.88:86/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'rethuairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.74:93/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'chetnaairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.59:96/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'sundariairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.55:93/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'airvoyager':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.72:86/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'suriyaairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.70:98/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'akshayairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.82:92/api/integration/seats/${newScheduleId}`;
+            break;
+            case 'sprityairline':
+            // Assuming Vishal Airline also uses a bearer token for authorization
+            partnerSeatsUrl = `http://192.168.10.67:90/api/integration/seats/${newScheduleId}`;
+            break;
+          // Add cases for other airlines
+          default:
+            console.log('Invalid airlineName');
+        }
+        const token = sessionStorage  .getItem('Token');
+        console.log('Token:', token);
+  
+        if (partnerSeatsUrl) {
+          // Include the bearer token in the headers for authorization
+          const partnerResponse = await axios.get(partnerSeatsUrl, {
+            headers: {
+              'Authorization': `Bearer ${token}`, // Use the same token as for the initial request
+              'Content-Type': 'application/json',
+            },
+          });
+  
+          console.log('Seats for partner flight:', partnerResponse.data);
+  
+          // Update the state with seats for the newScheduleId
+          setAvailableSeats(partnerResponse.data);
+          setSeatDetails(Array.from({ length: partnerResponse.data.length }, () => ({ seatNo: null })));
+        } else {
+          console.log('Invalid partnerSeatsUrl');
+        }
+      }
     } catch (error) {
       console.error('Error fetching available seats:', error);
     }
   };
+  
+  
+  // const handleTimerEnd = async () => {
+  //   try {
+  //     await ChangeSeatStatus('Available');
+  //   } catch (error) {
+  //     console.error('Error changing seat status after timer ends:', error);
+  //   } finally {
+  //     // Clear all cookies
+  //     Object.keys(cookies).forEach((cookie) => {
+  //       setCookie(cookie, '', { path: '/', maxAge: 0 });
+  //     });
+
+  //     // Clear local storage
+  //     localStorage.clear();
+  //     // Navigate to Page1
+  //     navigate('/page1');
+  //   }
+  // };
 
   // useEffect(() => {
-  //   if (storedData.scheduleId && !seatsFetched) {
-  //     setCurrentScheduleIndex(0);
-  //     fetchAvailableSeats(); // Fetch seats for the initial schedule
+  //   const countdown = setInterval(() => {
+  //     setTimer((prev) => prev - 1);
+  //   }, 1000);
+
+  //   if (timer === 0) {
+  //     clearInterval(countdown);
+  //     handleTimerEnd();
   //   }
-  // }, [storedData.scheduleId, seatsFetched]);
+
+  //   return () => clearInterval(countdown);
+  // }, [timer, cookies, setCookie, navigate]);
 
   const handleBookingCompletion = async () => {
     try {
-      await ChangeSeatStatus('unbooked');
+      await ChangeSeatStatus('Booked');
       setCurrentScheduleIndex(currentScheduleIndex + 1);
 
-      // Check if there are more schedules
       if (currentScheduleIndex < scheduleIds.length) {
         fetchAvailableSeats();
       }
 
-      // Save selected seats to cookies
       const selectedSeats = seatDetails
         .filter((seat) => seat.seatNo !== null)
         .map((seat) => seat.seatNo);
 
-      // Save seat details to bookingData cookie under seatDetails array
       const currentScheduleIdKey = scheduleIds[currentScheduleIndex - 1];
       const updatedBookingData = {
         ...storedData,
         seatDetails: [
-          ...(storedData.seatDetails || []), // Preserve existing seat details
+          ...(storedData.seatDetails || []),
           { seatDetails: selectedSeats },
         ],
       };
-  
+
       setCookie('bookingData', updatedBookingData);
-  
-          // If there are no more schedules, navigate to the final page
-          if (currentScheduleIndex === scheduleIds.length) {
-            navigate('/finalPage');
-          }
-        } catch (error) {
-          console.error('Error during booking completion:', error);
+
+      if (currentScheduleIndex === scheduleIds.length) {
+        const airlineName = localStorage.getItem('airlineName');
+
+        console.log('Airline Name:', airlineName);
+
+        if (airlineName === 'mahaairline') {
+          navigate('/finalPage');
+        } else {
+          navigate('/PartnerBookingfinalPage');
+          console.log('Invalid airlineName or no airlineName specified.');
         }
-      };
+      }
+    } catch (error) {
+      console.error('Error during booking completion:', error);
+    }
+  };
 
   useEffect(() => {
     const newPassengerCount = cookies.passengerCount || 0;
@@ -92,34 +223,98 @@ const Page3 = () => {
     );
   }, [cookies.passengerCount, storedData, availableSeats]);
 
-  useEffect(() => {
-    // Set up the timer
-    const countdown = setInterval(() => {
-      setTimer((prev) => prev - 1);
-    }, 1000);
+//   const ChangeSeatStatus = async (status, airlineKey) => {
+//     try {
+//       const userId = sessionStorage.getItem('userId');
+//       const selectedSeats = seatDetails
+//         .filter((seat) => seat.seatNo !== null)
+//         .map((seat) => seat.seatNo);
+  
+//       const currentScheduleId = localStorage.getItem('scheduleId');
+//       const newScheduleId = localStorage.getItem('newScheduleId');
+  
+//       // Retrieve apiPath using airlineKey
+//       const apiPath = airlinesapi[airlineKey].apiPath;
+  
+//       // Change seat status for the current schedule
+//       const currentScheduleResponse = await axios.patch(
+//         `${apiPath}Integration/changeseatstatus/${currentScheduleId}/${status}`,
+//         JSON.stringify(selectedSeats),
+//         {
+//           headers: {
+//             'Content-Type': 'application/json',
+//           },
+//         }
+//       );
+  
+//       console.log('Response for current schedule:', currentScheduleResponse.data);
+  
+//       // Change seat status for the new schedule
+//       const newScheduleUrl = `${apiPath}Integration/changeseatstatus/${newScheduleId}/${status}`;
+// console.log('New Schedule URL:', newScheduleUrl);
 
-    // Clear the timer when it reaches 0
-    if (timer === 0) {
-      clearInterval(countdown);
-      handleBookingCompletion();
-    }
+// const newScheduleResponse = await axios.patch(
+//   newScheduleUrl,
+//   JSON.stringify(selectedSeats),
+//   {
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//   }
+// );
+  
+//       console.log('Response for new schedule:', newScheduleResponse.data);
+//     } catch (error) {
+//       console.error('Error changing seat status:', error);
+//     }
+//   };
 
-    // Clean up the interval when the component is unmounted
-    return () => clearInterval(countdown);
-  }, [timer]);
 
-  const ChangeSeatStatus = async (status) => {
+const ChangeSeatStatus = async (status) => {
+  try {
+    const userId = sessionStorage.getItem('userId');
+    const selectedSeats = seatDetails
+      .filter((seat) => seat.seatNo !== null)
+      .map((seat) => seat.seatNo);
+
+    const ScheduleId = localStorage.getItem('scheduleId');
+    const token = sessionStorage.getItem('Token');
+
+    const response = await axios.patch(
+      `http://192.168.10.63:91/api/Integration/changeseatstatus/${ScheduleId}/${status}`,
+      JSON.stringify(selectedSeats),
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Error changing seat status:', error);
+  }
+};
+
+  const ChangePartnerSeatStatus = async (status, airlineKey) => {
     try {
       const userId = sessionStorage.getItem('userId');
       const selectedSeats = seatDetails
         .filter((seat) => seat.seatNo !== null)
         .map((seat) => seat.seatNo);
-
-      const currentScheduleIdKey = scheduleIds[currentScheduleIndex];
-      const scheduleId = storedData[currentScheduleIdKey];
-
-      const response = await axios.put(
-        `https://localhost:7124/api/Integration/${scheduleId}/${status}`,
+  
+        
+      // const currentScheduleId = localStorage.getItem('scheduleId');
+      airlineName = localStorage.getItem('airlineName');
+      console.log('airlineName',airlineName);
+      const newScheduleId = localStorage.getItem('newScheduleId');
+      console.log('newScheduleId',newScheduleId);
+  
+      // Retrieve apiPath using airlineKey
+      const apiPath = airlinesapi[airlineKey].apiPath;
+  
+      // Change seat status for the current schedule
+      const currentScheduleResponse = await axios.patch(
+        `${apiPath}Integration/changeseatstatus/${newScheduleId}/${status}`,
         JSON.stringify(selectedSeats),
         {
           headers: {
@@ -127,83 +322,135 @@ const Page3 = () => {
           },
         }
       );
-
-      console.log(response);
+      console.log('Response for current schedule:', currentScheduleResponse.data);
     } catch (error) {
-      console.error(error);
+      console.error('Error changing seat status:', error);
     }
   };
-
+  
   const handleSeatNoChange = (index, value) => {
-    setSeatDetails((prev) => [
-      ...prev.slice(0, index),
-      { ...prev[index], seatNo: value },
-      ...prev.slice(index + 1),
-    ]);
+    setSeatDetails((prev) => {
+      const updatedDetails = [...prev];
+      const isSelected = updatedDetails[index]?.seatNo !== null;
+  
+      if (isSelected) {
+        // Deselect the seat if it was previously selected
+        updatedDetails[index] = { seatNo: null };
+      } else {
+        // Select the seat if it was not previously selected
+        updatedDetails[index] = { seatNo: value };
+      }
+  
+      return updatedDetails;
+    });
   };
-
+  
+  
+  
   const renderSeatGrid = () => {
     const passengerCount = cookies.passengerCount || 0;
-
+    const seatsPerRow = 6;
+  
+    // Group seats by rows
+    const seatsByRows = Array.from({ length: Math.ceil(availableSeats.length / seatsPerRow) }, (_, rowIndex) =>
+      availableSeats.slice(rowIndex * seatsPerRow, (rowIndex + 1) * seatsPerRow)
+    );
+  
     return (
       <div>
         <h3 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>
-          Select Your Seat for Your Flight {currentScheduleIndex + 0}
+          {currentScheduleIndex === 0 ? `Select Your Seat for Your Flight ${currentScheduleIndex + 1}` : ``}
         </h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(50px, 1fr))',
-            gap: '10px',
-          }}
-        >
-          {availableSeats.map((seat, index) => (
-            <button
-              key={index}
-              onClick={() => handleSeatNoChange(index, seat.seatNumber)}
-              disabled={seatDetails.some((s) => s.seatNo === seat.seatNumber)}
-              style={{
-                padding: '10px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                backgroundColor: seatDetails[index]?.seatNo ? '#e74c3c' : '#3498db',
-                color: '#fff',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                marginBottom: '10px',
-              }}
-            >
-              {seat.seatNumber}
-            </button>
-          ))}
-        </div>
+        {seatsByRows.map((row, rowIndex) => (
+          <div key={rowIndex} style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            {row.map((seat, index) => (
+              <div key={index} style={{ position: 'relative', marginRight: '10px' }}>
+                {/* Seat Button */}
+                <div
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Button
+  onClick={() => handleSeatNoChange(rowIndex * seatsPerRow + index, seat.seatNumber)}
+  disabled={
+    seatDetails[rowIndex * seatsPerRow + index]?.seatNo && seatDetails[rowIndex * seatsPerRow + index]?.seatNo !== null
+      ? false
+      : seat.status.toLowerCase() === 'booked' ||
+        (passengerCount > 0 && seatDetails.filter((s) => s.seatNo !== null).length >= passengerCount)
+  }
+  variant="contained"
+  style={{
+    padding: '15px',
+    fontSize: '24px',
+    fontWeight: 'bold',
+    backgroundColor:
+      seatDetails[rowIndex * seatsPerRow + index]?.seatNo
+        ? '#e74c3c'
+        : seat.status.toLowerCase() === 'booked'
+        ? '#ccc'
+        : '#3498db',
+    color: seat.status.toLowerCase() === 'booked' ? '#666' : '#fff',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    border: '1px solid #ddd',
+    width: '60px', // Adjust the width as needed
+  }}
+>
+  {seatDetails[rowIndex * seatsPerRow + index]?.seatNo ? (
+    <FontAwesomeIcon icon={faCheckCircle} style={{ fontSize: '10px', fontWeight: 'bold', color: '#fff' }} />
+  ) : null}
+</Button>
+
+                  {/* Seat Number */}
+                  <Typography
+                    variant="subtitle2"
+                    style={{
+                      fontSize: '14px',
+                      color: '#333',
+                      fontWeight: 'bold',
+                      position: 'absolute',
+                      top: '-20px',
+                    }}
+                  >
+                    {seat.seatNumber}
+                  </Typography>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     );
   };
+  
+  
 
   return (
-    <div style={{ maxWidth: '600px', margin: 'auto', textAlign: 'center', padding: '20px' }}>
-      <h2 style={{ color: '#333', marginBottom: '20px' }}>Select Your Seats</h2>
-      <form>{renderSeatGrid()}</form>
-      <p style={{ color: '#777', margin: '10px' }}>Time remaining: {timer} seconds</p>
-      <button
-        type="button"
-        onClick={() => handleBookingCompletion()}
-        style={{
-          marginTop: '10px',
-          padding: '15px 20px',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          backgroundColor: '#3498db',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-        }}
-      >
-        Continue
-      </button>
-    </div>
+    <Layout>
+      <Paper elevation={3} sx={{ maxWidth: '600px', margin: 'auto', textAlign: 'center', padding: '60px' }}>
+        <Typography variant="h5" sx={{ color: 'black', marginBottom: '20px' }}>
+          Select Your Seats
+        </Typography>
+        <form>{renderSeatGrid()}</form>
+        <Typography variant="body2" sx={{ color: '#777', margin: '10px' }}>
+          Time remaining: {timer} seconds
+        </Typography>
+        <Button
+  variant="contained"
+  color="primary"
+  size="large"
+  onClick={() => handleBookingCompletion()}
+  sx={{ marginTop: '10px', backgroundColor: 'black' }}
+>
+  Proceed with Booking
+</Button>
+
+      </Paper>
+    </Layout>
   );
 };
 

@@ -38,7 +38,7 @@ const AirportManagement = () => {
   useEffect(() => {
     // Fetch airports when the component mounts
     axios
-      .get('https://localhost:7124/api/Airports')
+      .get('http://192.168.10.63:91/api/Airports')
       .then((response) => {
         setAirports(response.data);
         setFilteredAirports(response.data);
@@ -74,16 +74,16 @@ const AirportManagement = () => {
       if (editingAirportId) {
         // Update existing airport details
         await axios.put(
-          `https://localhost:7124/api/Airports/${editingAirportId}`,
+          `http://192.168.10.63:91/api/Airports/${editingAirportId}`,
           newAirport
         );
       } else {
         // Post new airport details
-        await axios.post('https://localhost:7124/api/Airports', newAirport);
+        await axios.post('http://192.168.10.63:91/api/Airports', newAirport);
       }
 
       // Refresh the airport list after posting/editing
-      const response = await axios.get('https://localhost:7124/api/Airports');
+      const response = await axios.get('http://192.168.10.63:91/api/Airports');
       setAirports(response.data);
       setFilteredAirports(response.data);
 
@@ -118,7 +118,7 @@ const AirportManagement = () => {
 
   return (
     <Container component="main" maxWidth="md" style={{ marginTop: '20px' }}>
-      <Paper elevation={3} style={{ padding: '20px', borderRadius: '8px' }}>
+      <Paper elevation={3} style={{ padding: '80px', borderRadius: '8px' }}>
         <Typography variant="h4" gutterBottom>
           Airport Management
         </Typography>
@@ -190,7 +190,7 @@ const AirportManagement = () => {
           </Typography>
           <form onSubmit={handleSubmit}>
             <TextField
-              label="Airport ID"
+              label="Airport Code"
               type="text"
               name="airportId"
               value={newAirport.airportId}

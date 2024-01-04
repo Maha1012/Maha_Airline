@@ -3,11 +3,13 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 // import Slideshow from './Slideshow';
 import Home from './Home';
 import Layout from './Dashboards/Layout';
+import TopLayout from './Dashboards/Toplayout';
 import Login from './Components/Login';
 import Registration from './Components/Registration';
 import FlightDetails from './Dashboards/FlightDetails';
 import AirportManagement from './Dashboards/AirportManagment';
 import FlightScheduleManagement from './Dashboards/FlightScheduleManagement';
+import UserHistoryForAdmin from './Dashboards/UserHistoryForAdmin';
 import BookingForm from './Dashboards/BookingForm';
 import Page1 from './Dashboards/Page1';
 import Page2 from './Dashboards/Page2';
@@ -21,13 +23,22 @@ import Header from './Header';
 import UserHistory from './Dashboards/UserHistory';
 import UserHomePage from './Dashboards/UserHomepage';
 import ChangePassword from './Components/ChangePassword';
-
+import Roundtrip from './Dashboards/Roundtrip';
+import PartnerBookingFinalPage from './Dashboards/PartnerBookingfinalPage';
+import RoundtripPage2 from './Dashboards/RoundTripPage2';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import RoundtripPage3 from './Dashboards/RoundTripPage3';
+import RoundTripFinalPage from './Dashboards/RoundtripfinalPage';
+import GradientBackground from './Components/GradientBackground';
+import Footer from './Dashboards/Footer';
 
 
 
 function App() {
   return (
     <Router>
+      <GradientBackground>
       
         
         <style>
@@ -60,9 +71,18 @@ function App() {
             <Route path="/UserHistory" element={<UserHistory />} />
             <Route path="/UserHomePage" element={<UserHomePage />} />
             <Route path="/ChangePassword" element={<ChangePassword />} />
+            <Route path="/Roundtrip" element={<Roundtrip />} />
+            <Route path="/PartnerBookingFinalPage" element={<PartnerBookingFinalPage />} />
+            <Route path="/RoundtripPage2" element={<RoundtripPage2 />} />
+            <Route path="/RoundtripPage3" element={<RoundtripPage3 />} />
+            <Route path="/RoundTripFinalPage" element={<RoundTripFinalPage />} />
+            <Route path="/UserHistoryForAdmin" element={<UserHistoryForAdmin />} />
           </Routes>
+          <ToastContainer/>
         </div>
-      
+        <Footer />
+        </GradientBackground>
+        
     </Router>
   );
 }

@@ -1,44 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
-  Button,
-  Typography,
   IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
   Menu,
   MenuItem,
+  Typography,
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import HomeIcon from '@mui/icons-material/Home';
-import MenuIcon from '@mui/icons-material/Menu';
+import { AccountCircle, ArrowBackIos, Flight, Mail, Info } from '@mui/icons-material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Link as ScrollLink } from 'react-scroll';
 
 const Header = () => {
   const navigate = useNavigate();
-  const [apiHistoryVisible, setApiHistoryVisible] = useState(false);
+  const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showBackToBookingButton, setShowBackToBookingButton] = useState(false);
 
-  const handleLogout = () => {
-    console.log('Logging out...');
-    // Clear the token and user information from session storage
-    sessionStorage.removeItem('Token');
-    sessionStorage.removeItem('userId');
-    sessionStorage.removeItem('username');
-  
-    // Redirect to the login page or any other route after logout
-    navigate('/login');
-  };
-  const handleGoBack = () => {
-    navigate(-1); // Navigate back using the navigate function
-  };
-
-  const handleToggleApiHistory = () => {
-    setApiHistoryVisible(!apiHistoryVisible);
+  const handleChangePassword = () => {
+    navigate('/ChangePassword');
   };
 
   const handleMenuClick = (event) => {
@@ -49,69 +30,100 @@ const Header = () => {
     setAnchorEl(null);
   };
 
+  const handleLogout = () => {
+    // Clear session storage
+    sessionStorage.clear();
+
+    // Clear cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+
+    // Clear local storage
+    localStorage.clear();
+
+    setAnchorEl(null);
+    navigate('/login');
+    console.log('User logged out');
+  };
+
+  const handleGoBack = () => {
+    navigate(-1); // Go back one step in the navigation stack
+  };
+
+  useEffect(() => {
+    // Determine if the scroll button should be shown based on the current location
+    setShowScrollButton(location.pathname === '/UserHomePage');
+
+    // Determine if the "Back to Booking" button should be shown based on the current location
+    setShowBackToBookingButton(location.pathname === '/UserHistory');
+  }, [location.pathname]);
+
+  const handleBackToBooking = () => {
+    navigate('/UserHomePage');
+  };
+
   return (
-    <>
-      <AppBar position="static" color="primary">
+    <div>
+      <AppBar position="static" style={{ backgroundColor: 'black', boxShadow: 'none' }}>
         <Toolbar>
-          {/* <IconButton color="inherit" edge="start" onClick={handleToggleApiHistory}>
-            <MenuIcon />
-          </IconButton> */}
-          <Link to="/" style={{ textDecoration: 'none', color: 'white' }}>
-            <IconButton color="inherit" size="large">
-              <HomeIcon />
-            </IconButton>
-          </Link>
-          <Typography variant="h6" style={{ flexGrow: 1, marginLeft: 10 }}>
-            MahaAirline's
+          <IconButton color="inherit" onClick={handleGoBack}>
+            <ArrowBackIos style={{ color: 'white', fontSize: 24 }} />
+          </IconButton>
+          <Typography variant="h6" style={{ flexGrow: 1, color: 'white' }}>
+            Maha's Airline
           </Typography>
-          {localStorage.getItem('Token') ? (
-            <>
-              <Button
-                color="inherit"
-                aria-controls="user-menu"
-                aria-haspopup="true"
-                onClick={handleMenuClick}
-              >
-                <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-                  {localStorage.getItem('username')}
-                </Typography>
-              </Button>
-              <Menu
-                id="user-menu"
-                anchorEl={anchorEl}
-                keepMounted
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-              >
-                <MenuItem onClick={handleLogout} endIcon={<ExitToAppIcon />}>
-                  Logout
-                </MenuItem>
-                <MenuItem
-                  component={RouterLink}
-                  to="/ChangePassword"
-                  onClick={handleMenuClose}
-                >
-                  Change Password
-                </MenuItem>
-              </Menu>
-              <Button color="inherit" component={RouterLink} to="/ChangePassword">
-                <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-                  Change Password
-                </Typography>
-              </Button>
-            </>
-          ) : (
-            <Button color="inherit" onClick={() => navigate('/login')}>
-              <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-                Logout
-              </Typography>
-            </Button>
+          {showScrollButton && (
+            <ScrollLink
+              activeClass="active"
+              to="bookTicketSection"
+              spy={true}
+              smooth={true}
+              offset={-70}
+              duration={500}
+            >
+              <IconButton color="inherit">
+                <Flight style={{ fontSize: 24 }} />
+              </IconButton>
+            </ScrollLink>
           )}
+          {showBackToBookingButton && (
+  <Typography variant="body1" style={{ color: 'white', cursor: 'pointer' }} onClick={handleBackToBooking}>
+    Back to Booking
+  </Typography>
+)}
+
+          {showScrollButton && (
+            <ScrollLink
+              activeClass="active"
+              to="aboutUsSection"
+              spy={true}
+              smooth={true}
+              offset={-70}
+              duration={500}
+            >
+              <IconButton color="inherit">
+                <Info style={{ fontSize: 24 }} />
+              </IconButton>
+            </ScrollLink>
+          )}
+          <IconButton color="inherit" onClick={handleMenuClick}>
+            <AccountCircle />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem onClick={handleChangePassword}>Change Password</MenuItem>
+            <MenuItem onClick={handleLogout}>Log Out</MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
-
-      {/* Drawer for displaying API history */}
-    </>
+    </div>
   );
 };
 

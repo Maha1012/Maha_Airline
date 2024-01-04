@@ -1,11 +1,12 @@
+// axiosInstance.js
 import axios from 'axios';
 
-// Retrieve the API path from localStorage or set a default value
-const apiPath = localStorage.getItem('apipath') || 'http://192.168.10.52:90/api/';
-
-// Create an Axios instance with the base URL
 const axiosInstance = axios.create({
-  baseURL: apiPath,
+  baseURL: 'https://localhost:7124/api/', // Replace with your base API URL
+  headers: {
+    'Authorization': `Bearer ${sessionStorage.getItem('Token')}`, // Get the token from localStorage
+    'Content-Type': 'application/json',
+  },
 });
 
 export default axiosInstance;

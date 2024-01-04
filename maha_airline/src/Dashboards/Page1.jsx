@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import { airlinesapi, mahaairline } from '../constants';
+import Layout from './Layout';
+
 
 import {
   Button,
@@ -16,6 +18,9 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  Box,
+  Card,
+  CardContent,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -24,7 +29,7 @@ const Page1 = () => {
   const [destinationCity, setDestinationCity] = useState('');
   const [date, setDate] = useState('');
   const [passengerCount, setPassengerCount] = useState(0);
-  const [bookingType, setBookingType] = useState('');
+  //const [bookingType, setBookingType] = useState('');
   const [flights, setFlights] = useState([]);
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [sourceCities, setSourceCities] = useState([]);
@@ -33,7 +38,9 @@ const Page1 = () => {
   const [finalIntegratedConnectingFlights,setFinalIntegratedConnectingFlights] = useState([]);
   const navigate = useNavigate();
   const [isStateSet, setIsStateSet] = useState(false);
-  
+  const [bookingType, setBookingType] = useState('oneway');
+  const [searchPerformed, setSearchPerformed] = useState(false);  // New state
+  const [isNextButtonEnabled, setIsNextButtonEnabled] = useState(false);  // New state
 
   useEffect(() => {
     fetchCities();
@@ -41,7 +48,21 @@ const Page1 = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await fetch('https://localhost:7124/api/Airports');
+      // Retrieve the access token from session storage
+    const accessToken = sessionStorage.getItem('Token'); // Replace with your actual key
+
+    if (!accessToken) {
+      console.error('Access token not found in session storage');
+      return;
+    }
+
+    const response = await fetch('http://192.168.10.63:91/api/Airports', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        // You can add other headers if needed
+      },
+    });
       
       if (response.ok) {
         const data = await response.json();
@@ -66,7 +87,7 @@ const Page1 = () => {
   const fetchAirportId = async (city) => {
     try {
       const response = await fetch(
-        `https://localhost:7124/api/Airports/GetAirportIdByCity?city=${city}`
+        `http://192.168.10.63:91/api/Airports/GetAirportIdByCity?city=${city}`
       );
 
       if (response.ok) {
@@ -167,6 +188,8 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
 
   const handleSearch = async () => {
     // Check if the date is not in the past
+
+  console.log("first")
   const currentDate = new Date();
   const selectedDate = new Date(date);
 
@@ -199,13 +222,16 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
         const formattedDate = new Date(date).toISOString().split(".")[0];
         console.log('Formatted Date:', formattedDate);
         console.log(sourceAirportId);
-        //getIntegratedFlightDetails(mahaairline, airlinesapi,sourceAirportId.airportId, destinationAirportId.airportId, formattedDate)
+        console.log(destinationAirportId);
+
+
+        getIntegratedFlightDetails(mahaairline, airlinesapi,sourceAirportId.airportId, destinationAirportId.airportId, formattedDate)
 
         console.log(sourceAirportId.airportId)
         const response = await fetch(
-          `https://localhost:7124/api/FlightSchedules/schedulesById?sourceAirportId=${sourceAirportId.airportId}&destinationAirportId=${destinationAirportId.airportId}&date=${formattedDate}`
+          `http://192.168.10.63:91/api/FlightSchedules/schedulesById?sourceAirportId=${sourceAirportId.airportId}&destinationAirportId=${destinationAirportId.airportId}&date=${formattedDate}`
         );
-        
+        console.log(response.data)
 
         if (response.ok) {
           const data = await response.json();
@@ -216,6 +242,7 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
           }
 
           setFlights(data.data);
+          setIsNextButtonEnabled(true);
 
          
 
@@ -239,6 +266,8 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
   };
 
   const handleNext = async () => {
+    // const { scheduleId } = cookies.bookingData || {};
+  
     const sourceAirportIdPromise = fetchAirportId(sourceCity);
     const destinationAirportIdPromise = fetchAirportId(destinationCity);
   
@@ -249,11 +278,14 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
       ]);
   
       if (sourceAirportId && destinationAirportId) {
+        const scheduleId = selectedFlight?.scheduleId;
+        localStorage.setItem('scheduleId', scheduleId);
         setCookie('source', sourceAirportId);
         setCookie('destination', destinationAirportId);
         setCookie('date', date);
         setCookie('passengerCount', passengerCount);
-  
+        //scheduleId= localStorage.setItem('scheduleId', scheduleId);
+        
         if (bookingType === 'roundtrip') {
           navigate('/roundtrip');
     }
@@ -272,108 +304,151 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
   };
 
 
+  const handleCardClick = (data) => {
+    setSelectedFlight(data);
+  };
+
 
   return (
-    <>
-    <div style={{ maxWidth: '400px', margin: 'auto', color: '#333' }}>
-      <Typography variant="h4" color="primary" gutterBottom>
-        Start Searching for flights
-      </Typography>
-      <form>
-        <FormControl fullWidth style={{ marginBottom: '10px' }}>
-          <InputLabel>Source City</InputLabel>
-          <Select
-            value={sourceCity}
-            onChange={(e) => setSourceCity(e.target.value)}
-            label="Source City"
-          >
-            {sourceCities.map((city) => (
-              <MenuItem key={city} value={city}>
-                {city}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth style={{ marginBottom: '10px' }}>
-          <InputLabel>Destination City</InputLabel>
-          <Select
-            value={destinationCity}
-            onChange={(e) => setDestinationCity(e.target.value)}
-            label="Destination City"
-          >
-            {destinationCities.map((city) => (
-              <MenuItem key={city} value={city}>
-                {city}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <TextField
-          //label="Date"
-          type="date"
-          variant="outlined"
-          fullWidth
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          style={{ marginBottom: '10px' }}
-        />
-        <TextField
-          label="Passenger Count"
-          type="number"
-          variant="outlined"
-          fullWidth
-          value={passengerCount}
-          onChange={(e) => setPassengerCount(e.target.value)}
-          style={{ marginBottom: '10px' }}
-        />
-       <FormControl fullWidth style={{ marginBottom: '10px' }}>
-            <InputLabel>Booking Type</InputLabel>
-            <Select
-              value={bookingType}
-              onChange={(e) => setBookingType(e.target.value)}
-              label="Booking Type"
-            >
-              <MenuItem value="oneway">One Way</MenuItem>
-              <MenuItem value="roundtrip">Round Trip</MenuItem>
-            </Select>
-          </FormControl>
-        <Button variant="contained" color="primary" onClick={handleSearch} fullWidth>
-          Search for Flights
-        </Button>
-        <div style={{ marginTop: '20px' }}>
-          <Typography variant="h6">Select a Flight</Typography>
-          <RadioGroup>
-            {Array.isArray(flights) && flights.length > 0 ? (
-              flights.map((data) => (
-                <FormControlLabel
-                  key={data.scheduleId}
-                  value={data.scheduleId.toString()}
-                  control={<Radio />}
-                  label={`${data.flightName} - ${new Date(data.dateTime).toLocaleString()}`}
-                  onChange={() => setSelectedFlight(data)}
-                />
-              ))
-            ) : (
-              <Typography variant="body2">No flights available</Typography>
-            )}
-          </RadioGroup>
-        </div>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleNext}
-          fullWidth
-          style={{ marginTop: '20px' }}
+    <Layout>
+      <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+        padding="20px"
+         // Light blue background color
+      >
+        <Box
+          maxWidth="400px"
+          width="100%"
+          color="black"
+          backgroundColor="#ffffff" // White background for the form container
+          padding="20px"
+          borderRadius="8px"
+          boxShadow="0 0 10px rgba(0, 0, 0, 0.1)"
         >
-          Next
-        </Button>
-        
-      </form>
-    </div>
-    <ToastContainer />
-    </>
+          <Typography
+  variant="h4"
+  color="black"
+  gutterBottom
+  style={{ textAlign: 'center' }}
+>
+  Let's Find Your Flight!
+</Typography>
+
+        <form>
+          <Box display="flex" flexDirection="row" justifyContent="space-between">
+            <FormControl style={{ marginBottom: '10px', marginRight: '10px', width: '100%' }}>
+              <InputLabel>Source City</InputLabel>
+              <Select
+                value={sourceCity}
+                onChange={(e) => setSourceCity(e.target.value)}
+                label="Source City"
+              >
+                {sourceCities.map((city) => (
+                  <MenuItem key={city} value={city}>
+                    {city}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl style={{ marginBottom: '10px', marginLeft: '10px', width: '100%' }}>
+              <InputLabel>Destination City</InputLabel>
+              <Select
+                value={destinationCity}
+                onChange={(e) => setDestinationCity(e.target.value)}
+                label="Destination City"
+              >
+                {destinationCities.map((city) => (
+                  <MenuItem key={city} value={city}>
+                    {city}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box display="flex" flexDirection="row" justifyContent="space-between">
+            <TextField
+              type="date"
+              variant="outlined"
+              fullWidth
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              style={{ marginBottom: '10px', marginRight: '10px', width: '100%' }}
+            />
+            <TextField
+              label="Passenger Count"
+              type="number"
+              variant="outlined"
+              fullWidth
+              value={passengerCount}
+              onChange={(e) => setPassengerCount(e.target.value)}
+              style={{ marginBottom: '10px', width: '100%' }}
+            />
+          </Box>
+          <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSearch}
+              fullWidth
+              style={{ marginTop: '20px', backgroundColor: 'black' }}
+            >
+              Search for Flights
+            </Button>
+            <div style={{ marginTop: '20px' }}>
+        <Typography variant="h6"></Typography>
+        {Array.isArray(flights) && flights.length > 0 ? (
+          flights.map((data) => (
+            <Card
+              key={data.scheduleId}
+              style={{
+                marginBottom: '10px',
+                cursor: 'pointer',
+                backgroundColor: selectedFlight === data ? '#e0f7fa' : 'white', // Change the background color for selected card
+                border: selectedFlight === data ? '2px solid #009688' : '1px solid #ccc', // Change the border for selected card
+              }}
+              onClick={() => handleCardClick(data)}
+            >
+              <CardContent>
+                <Typography variant="h6">{data.flightName}</Typography>
+                <Typography variant="body2">
+                  {new Date(data.dateTime).toLocaleString()} - Source: {data.sourceAirportId} - Destination: {data.destinationAirportId}
+                </Typography>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Typography variant="body2">No flights available</Typography>
+        )}
+      </div>
+          <Button
+              variant="contained"
+              color="primary"
+              onClick={handleNext}
+              fullWidth
+              style={{ marginTop: '20px' }}
+              disabled={!isNextButtonEnabled}
+            >
+              Next
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => navigate('/ConnectingFlightsPage')}
+              fullWidth
+              style={{ marginTop: '20px' }}
+              disabled={!isNextButtonEnabled}
+            >
+              Search for Connecting Flights
+            </Button>
+          </form>
+        </Box>
+        <ToastContainer />
+      </Box>
+    </Layout>
   );
 };
-
 
 export default Page1;

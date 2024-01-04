@@ -2,12 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Layout from './Layout';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import {
   Container,
   Typography,
   List,
   ListItem,
   TextField,
+  
   Button,
   Checkbox,
   FormControlLabel,
@@ -34,7 +39,7 @@ const FlightManagement = () => {
   useEffect(() => {
     // Fetch flight details when the component mounts
     axios
-      .get('https://localhost:7124/api/FlightDetail')
+      .get('http://192.168.10.63:91/api/FlightDetail')
       .then((response) => setFlightDetails(response.data))
       .catch((error) => console.error('Error fetching flight details:', error));
   }, []);
@@ -50,13 +55,13 @@ const FlightManagement = () => {
     try {
       // Post new flight details
       await axios.post(
-        'https://localhost:7124/api/FlightDetail/PostFlightDetails',
+        'http://192.168.10.63:91/api/FlightDetail/PostFlightDetails',
         newFlight
       );
 
       // Refresh the flight details after posting
       const response = await axios.get(
-        'https://localhost:7124/api/FlightDetail'
+        'http://192.168.10.63:91/api/FlightDetail'
       );
       setFlightDetails(response.data);
 
@@ -78,13 +83,13 @@ const FlightManagement = () => {
     try {
       // Put updated flight details
       await axios.put(
-        `https://localhost:7124/api/FlightDetail/${flightToUpdate}`,
+        `http://192.168.10.63:91/api/FlightDetail/${flightToUpdate}`,
         newFlight
       );
 
       // Refresh the flight details after updating
       const response = await axios.get(
-        'https://localhost:7124/api/FlightDetail'
+        'http://192.168.10.63:91/api/FlightDetail'
       );
       setFlightDetails(response.data);
 
@@ -94,12 +99,18 @@ const FlightManagement = () => {
         isActive: false,
       });
 
-      // Hide the update form
-      setShowUpdateForm(false);
-    } catch (error) {
-      console.error('Error updating flight:', error);
-    }
-  };
+  //     // Hide the update form
+  //     setShowUpdateForm(false);
+  //   } catch (error) {
+  //     console.error('Error updating flight:', error);
+  //   }
+  // };
+  // Show success message using Toastify
+  toast.success('Flight added successfully');
+} catch (error) {
+  console.error('Error posting new flight:', error);
+}
+};
 
   const handleEditClick = (flight) => {
     // Set the flight to update and populate the form fields
@@ -114,8 +125,9 @@ const FlightManagement = () => {
   };
 
   return (
+    <Layout>
     <Container component="main" maxWidth="md" style={{ marginTop: '20px' }}>
-      <Paper elevation={3} style={{ padding: '20px', borderRadius: '8px' }}>
+      <Paper elevation={3} style={{ padding: '70px', borderRadius: '8px' }}>
         <Typography variant="h4" gutterBottom style={{ marginBottom: '20px' }}>
           <h2>Flight Management</h2>
         </Typography>
@@ -270,6 +282,8 @@ const FlightManagement = () => {
         </div>
       </Paper>
     </Container>
+    <ToastContainer />
+    </Layout>
   );
 };
 

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
+import { mahaairline } from '../constants';
+import Layout from './Layout';
 
 const Page2 = () => {
   const [cookies, setCookie] = useCookies(['bookingData']);
   const storedData = cookies.bookingData;
   const navigate = useNavigate();
   const [passengerDetails, setPassengerDetails] = useState([]);
+  // const airlineName = localStorage.setItem('airlineName',mahaairline);
+  localStorage.setItem('airlineName', 'mahaairline');
 
   useEffect(() => {
     const count = storedData?.passengerCount || 0;
@@ -33,6 +37,7 @@ const Page2 = () => {
         name: details.name,
         age: details.age,
         gender: details.gender,
+        airlineName: mahaairline,
       })),
     };
 
@@ -42,8 +47,9 @@ const Page2 = () => {
   };
 
   return (
+    <Layout>
     <div style={styles.container}>
-      <h2 style={styles.heading}>Page 2</h2>
+      <h2 style={styles.heading}>Enter Your Personal Details</h2>
       <form>
         {passengerDetails.map((passenger, index) => (
           <div key={index} style={styles.passengerContainer}>
@@ -77,41 +83,54 @@ const Page2 = () => {
               />
             </label>
             <label style={styles.label}>
-              Gender:
-              <input
-                type="text"
-                value={passenger.gender}
-                onChange={(e) =>
-                  setPassengerDetails((prev) => updateArray(prev, index, { ...prev[index], gender: e.target.value }))
-                }
-                style={styles.input}
-              />
-            </label>
+  Gender:
+  <select
+    value={passenger.gender}
+    onChange={(e) =>
+      setPassengerDetails((prev) => updateArray(prev, index, { ...prev[index], gender: e.target.value }))
+    }
+    style={styles.input}
+  >
+    <option value="">Select Gender</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+    <option value="Others">Others</option>
+  </select>
+</label>
+
+
           </div>
         ))}
         <button type="button" onClick={handleNext} style={styles.nextButton}>
-          Next
+          Proceed to seat Bookings
         </button>
       </form>
+      
     </div>
+    </Layout>
+    
   );
 };
 
 const styles = {
   container: {
-    maxWidth: '600px',
+    maxWidth: '400px',
     margin: 'auto',
     textAlign: 'center',
-    padding: '20px',
-    background: '#f8f8f8',
-    borderRadius: '10px',
+    padding: '80px',
+    background: 'white',
+    allign:'center',
+    marginTop:'5px',
+    borderRadius: '8px',
     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+    
   },
   heading: {
-    color: '#3498db',
-    marginBottom: '20px',
+    color: 'black',
+    marginBottom: '10px',
+    // fontSize: '30px',
+    // fontWeight: 'bold',
     fontSize: '30px',
-    fontWeight: 'bold',
   },
   passengerContainer: {
     marginBottom: '20px',
@@ -123,12 +142,15 @@ const styles = {
     fontWeight: 'bold',
   },
   label: {
-    display: 'block',
-    marginBottom: '5px',
+    display: 'flex', // Use flex container
+    flexDirection: 'column', // Stack the child elements vertically
+    alignItems: 'flex-start', // Align items to the start (left) of the container
+    marginBottom: '10px', // Increase the margin for better spacing
     color: '#333',
     fontSize: '18px',
     fontWeight: 'bold',
   },
+
   input: {
     width: '100%',
     padding: '10px',
@@ -136,13 +158,16 @@ const styles = {
     borderRadius: '5px',
     border: '1px solid #ddd',
     outline: 'none',
+    marginTop: '5px', // Add margin-top for better spacing
+    boxSizing: 'border-box',
   },
+
   nextButton: {
     marginTop: '20px',
-    padding: '15px 20px',
+    padding: '10px 20px',
     fontSize: '18px',
-    fontWeight: 'bold',
-    backgroundColor: '#3498db',
+    
+    backgroundColor: 'black',
     color: '#fff',
     border: 'none',
     borderRadius: '5px',

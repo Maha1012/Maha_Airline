@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { TextField, Button, Container, Grid, Typography, Paper, Link, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import { Link as RouterLink } from 'react-router-dom';
 
 // Import specific Firebase modules
 import { initializeApp } from 'firebase/app';
@@ -50,7 +52,7 @@ const Registration = () => {
       await sendEmailVerification(user);
   
       // 3. Store user details in SSMS using your existing API
-      const response = await axios.post('https://localhost:7124/api/Authorization/Registration', userData);
+      const response = await axios.post('http://192.168.10.63:91/api/Authorization/Registration', userData);
   
       console.log('Registration successful', response.data);
   
@@ -65,15 +67,15 @@ const Registration = () => {
     navigate('/login');
   };
 
-  
   return (
     <Container component="main" maxWidth="xs" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <IconButton color="primary" onClick={handleGoBack} style={{ marginBottom: 20 }}>
+      <IconButton color="primary" onClick={handleGoBack} style={{ marginBottom: 20 ,color:'black'}}>
         <ArrowBackIcon />
       </IconButton>
-      <Paper elevation={3} style={{ padding: '20px', borderRadius: '10px', width: '100%' }}>
-        <Typography variant="h5" align="center" color="primary">
-          Welcome to HealthCareStat
+      <Paper elevation={3} style={{ padding: '15px', borderRadius: '10px', width: '100%', textAlign: 'center' }}>
+        <FlightTakeoffIcon style={{ fontSize: 40, color: 'black', marginBottom: '10px' }} />
+        <Typography variant="h5" align="center" color="primary" style={{ marginBottom: '15px', color: 'black' }}>
+          Welcome to MahaAirline's
         </Typography>
         <form>
           <TextField
@@ -117,16 +119,28 @@ const Registration = () => {
             color="primary"
             fullWidth
             size="large"
-            style={{ marginTop: '20px' }}
+            style={{ marginTop: '15px', backgroundColor: 'black' }}
             onClick={handleRegistration}
           >
             Register
           </Button>
-          <Grid container justifyContent="flex-end">
+
+          <Grid container justifyContent="flex-end" style={{ marginTop: '15px' }}>
             <Grid item>
-              <Link onClick={() => navigate('/login')} variant="body2">
-                Already have an account? Sign In
-              </Link>
+              <Button
+                component={RouterLink}
+                to="/login"
+                variant="contained"
+                color="primary"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid #000',
+                  color: '#000', // Text color
+                  borderRadius: '10px', // Adjust as needed
+                }}
+              >
+                Sign In
+              </Button>
             </Grid>
           </Grid>
         </form>
