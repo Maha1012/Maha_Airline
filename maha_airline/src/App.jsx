@@ -19,6 +19,8 @@ import Page2ConnectingFlights from './Dashboards/Page2ConnectingFlights';
 import AdminHome from './Dashboards/AdminHome';
 import Header from './Header';
 import UserHistory from './Dashboards/UserHistory';
+import UserHomePage from './Dashboards/UserHomepage';
+import ChangePassword from './Components/ChangePassword';
 
 
 
@@ -56,6 +58,8 @@ function App() {
             <Route path="/Page2ConnectingFlights" element={<Page2ConnectingFlights />} />
             <Route path="/AdminHome" element={<AdminHome />} />
             <Route path="/UserHistory" element={<UserHistory />} />
+            <Route path="/UserHomePage" element={<UserHomePage />} />
+            <Route path="/ChangePassword" element={<ChangePassword />} />
           </Routes>
         </div>
       

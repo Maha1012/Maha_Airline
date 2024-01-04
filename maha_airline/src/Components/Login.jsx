@@ -38,7 +38,7 @@ const Login = () => {
           navigate('/AdminHome');
         } if (data.role == 'User') {
           // Navigate to the OverallDashboard for other roles
-          navigate('/BookingForm');
+          navigate('/UserHomePage');
         }
   
         // Store other user information in local storage

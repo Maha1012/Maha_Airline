@@ -15,21 +15,20 @@ import axios from 'axios';
 const ConnectingFlightsPage = () => {
   const [cookies, setCookie] = useCookies(['selectedConnectingFlight', 'secondConnectingFlight']);
   const [connectingFlights, setConnectingFlights] = useState([]);
-  const [selectedFlight, setSelectedFlight] = useState('');
+  const [selectedFlight, setSelectedFlight] = useState(0);
   const [availableFlights, setAvailableFlights] = useState([]);
   const [selectedAvailableFlight, setSelectedAvailableFlight] = useState('');
   const [isStateSet, setIsStateSet] = useState(false);
-  //const [finalIntegratedConnectingFlights,setFinalIntegratedConnectingFlights] = useState([]);
+  const [finalIntegratedConnectingFlights,setFinalIntegratedConnectingFlights] = useState([]);
   //const integration = localStorage.getItem(connectionSchedules);
   // Assuming 'connectionSchedules' is the key used to store the data in localStorage
   // Assuming 'connectionSchedules' is the key used to store the data in localStorage
   const [firstConnectingFlights, setFirstConnectingFlights] = useState([]);
-
-  
-  const finalIntegratedConnectingFlights = JSON.parse(localStorage.getItem('connectionSchedules')) || [];
-
+  const data = JSON.parse(localStorage.getItem('connectionSchedules')) || [];
   console.log(finalIntegratedConnectingFlights);
 
+
+  
 //finalIntegratedConnectingFlights = connectionSchedules;
 
 
@@ -39,11 +38,23 @@ const ConnectingFlightsPage = () => {
   //setFinalIntegratedConnectingFlights(connectionSchedules); // Uncomment this line if you want to use this data in your application
 
   useEffect(() => {
+    console.log('Effect 1 is running');
+
+
+         
+    const data = JSON.parse(localStorage.getItem('connectionSchedules')) || [];
+    if(data){
+      setFinalIntegratedConnectingFlights(data);
+      setIsStateSet(true);
+    }
+
+
     const fetchConnectingFlights = async () => {
       try {
         const response = await fetch(
           `https://localhost:7124/api/FlightSchedules/SchedulebySource?sourceAirportId=${cookies.source.airportId}&date=${cookies.date}`
         );
+        console.log('source',cookies.source.airportId)
 
         if (response.ok) {
           const data = await response.json();
@@ -62,82 +73,68 @@ const ConnectingFlightsPage = () => {
         console.error('Error fetching connecting flights:', error);
       }
     };
+    console.log('Effect 1 has stooped');
 
+   
     fetchConnectingFlights();
+    console.log('this is fetchConnectingFlights',fetchConnectingFlights)
   }, [cookies.source, cookies.date]);
 
-  const handleSelectConnectingFlight = (event) => {
-    const selectedValue = event.target.value;
+
+
+  const handleSelectConnectingFlight = (e) => {
+    const selectedValue = e.target.value;
+    console.log(e.target.value);
+
     setSelectedFlight(selectedValue);
+    setCookie('selectedConnectingFlight', selectedValue);
   };
 
-  const handleSaveSelection = () => {
-    if (selectedFlight) {
-      // Save the selected connecting flight information to the cookie
-      setCookie('selectedConnectingFlight', selectedFlight);
-      console.log('Selected Connecting Flight:', selectedFlight);
-    } else {
-      console.error('No connecting flight selected');
-    }
-  };
 
 
   useEffect(() => {
-    console.log('this is trigeered');
-     {
-      console.log(
-        "Integrated Flight Details:",
-        finalIntegratedConnectingFlights
-      );
- 
+    if (isStateSet) {
+      console.log('Effect 2 is running');
+      console.log("Integrated Flight Details:", finalIntegratedConnectingFlights);
+  
       const firstflightdata = finalIntegratedConnectingFlights.map(
         (connection) => connection.FirstFlight
       );
-      console.log(firstflightdata);
       const secondflightdata = finalIntegratedConnectingFlights
         .map((connection) => connection.SecondFlight)
         .flat();
-      console.log(secondflightdata);
-      console.log(
-        "Before setSearchResults - finalIntegratedConnectingFlights:",
-        finalIntegratedConnectingFlights
-      );
-      // setSearchResults([...searchResults,...firstflightdata]);
-      // setSearchResults(prevSearchResults => [...prevSearchResults, ...firstflightdata]);
-      console.log(
-        "Before setSearchResults - finalIntegratedConnectingFlights:",
-        finalIntegratedConnectingFlights
-      );
+  
+      console.log("Before setSearchResults - finalIntegratedConnectingFlights:", finalIntegratedConnectingFlights);
+  
       setAvailableFlights((prevAvailableFlights) => {
         console.log("Previous searchResults:", prevAvailableFlights);
         const updatedSearchResults = [...prevAvailableFlights, ...firstflightdata];
         console.log("Updated searchResults:", updatedSearchResults);
         return updatedSearchResults;
       });
-      
+  
       setFirstConnectingFlights((prevFirstConnectingFlights) => [
         ...prevFirstConnectingFlights,
         ...secondflightdata,
       ]);
-      // setFirstConnectingFlights([...firstConnectingFlights,...secondflightdata]);
-      console.log("Updated inside searchResults:", setAvailableFlights);
-      console.log(
-        "Updated inside firstConnectingFlights:",
-        firstConnectingFlights
-      );
-      //
+  
+      console.log("Updated inside searchResults:", availableFlights);
+      console.log("Updated inside firstConnectingFlights:", firstConnectingFlights);
+  
+      console.log('Effect completed.');
     }
-  }, [isStateSet, finalIntegratedConnectingFlights]);
+  }, [finalIntegratedConnectingFlights, isStateSet]);
+  
+  
 
-
- 
 
   const handleConnectingFlightSelect = async () => {
     //getIntegratedFlightDetails(mahaairline, airlinesapi,destinationAirportId, destinationCityData.airportId, cookies.date)
-    let destinationAirportId;
-    let destinationCityData;
+    
     
     if (selectedFlight) {
+      
+      console.log("first")
       try {
         console.log('Selected Flight ID:', selectedFlight);
 
@@ -152,6 +149,7 @@ const ConnectingFlightsPage = () => {
           console.log('Flight Details:', flightDetails);
 
           // Extract source and destination from the connecting flight details
+         
           const sourceAirportId = flightDetails.sourceAirportId;
           const destinationAirportId = flightDetails.destinationAirportId;
 
@@ -162,16 +160,36 @@ const ConnectingFlightsPage = () => {
             `https://localhost:7124/api/Airports/${cookies.destination.airportId}`
           );
 
+          console.log('destinationCityResponse',destinationCityResponse);
+
           if (destinationCityResponse.ok) {
             const destinationCityData = await destinationCityResponse.json();
             console.log('Destination City:', destinationCityData.city);
             //console.log('Source Airport ID:', sourceAirportId);
             console.log('Destination Airport ID:', destinationAirportId);
 
+
+            console.log('source for fetching',cookies.destination.airportId)
+
             // Now fetch available flights based on the saved destination from cookies
             const availableFlightsResponse = await fetch(
-              `https://localhost:7124/api/FlightSchedules/schedulesById?sourceAirportId=${destinationAirportId}&destinationAirportId=${destinationCityData.airportId}&date=${cookies.date}`
+              `https://localhost:7124/api/FlightSchedules/SchedulebySource?sourceAirportId=${cookies.destination.airportId}&date=${cookies.date}`
             );
+
+            if (availableFlightsResponse.ok) {
+              const availableFlightsData = await availableFlightsResponse.json();
+              console.log('Available flights after connecting flight:', availableFlightsData);
+            
+              // Update the state or perform other actions with the available flights data
+              setAvailableFlights(availableFlightsData.data);
+            } else {
+              console.error('Failed to fetch available flights after connecting flight');
+            }
+            //console.log('Availableflights',availableFlightsResponse);
+
+           
+            
+           
 
             
             if (availableFlightsResponse.ok) {
@@ -191,7 +209,7 @@ const ConnectingFlightsPage = () => {
       } catch (error) {
         console.error('Error handling connecting flight selection:', error);
       }
-      
+    
     } else {
       console.error('No connecting flight selected');
     }
@@ -206,19 +224,43 @@ const ConnectingFlightsPage = () => {
 
   const handleSaveAvailableFlightSelection = () => {
     if (selectedAvailableFlight && selectedFlight) {
-      // Save the selected available flight information to the cookie
-      const bookingData = {
-        scheduleId: selectedFlight,
-        scheduleId1: selectedAvailableFlight,
-      };
+      // Find the selected available flight in finalIntegratedConnectingFlights
+      const selectedFlightDetails = finalIntegratedConnectingFlights.find(
+        (connection) => connection.SecondFlight.some(
+          (flight) => flight.scheduleId === selectedAvailableFlight
+        )
+      );
   
-      setCookie('bookingData', bookingData);
-      console.log('Selected Available Flight:', selectedAvailableFlight);
-      navigate('/Page2ConnectingFlights');
+      if (selectedFlightDetails) {
+        // Extract the apiPath from the selected flight details
+        const apiPath = selectedFlightDetails.SecondFlight[0].apiPath;
+  
+        // Store the selected available flight information and API path in localStorage
+        localStorage.setItem('ScheduleId', selectedFlight);
+        localStorage.setItem('newScheduleId', selectedAvailableFlight);
+        localStorage.setItem('apipath', apiPath);
+  
+        // Save the selected available flight information to the cookie
+        const bookingData = {
+          scheduleId: selectedFlight,
+          scheduleId1: selectedAvailableFlight,
+          apiPath: apiPath,
+        };
+  
+        // Store bookingData in localStorage
+        sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
+  
+        setCookie('bookingData', bookingData);
+        console.log('Selected Available Flight:', selectedAvailableFlight);
+        navigate('/Page2ConnectingFlights');
+      } else {
+        console.error('Selected available flight details not found in finalIntegratedConnectingFlights');
+      }
     } else {
       console.error('No available flight selected');
     }
   };
+  
   
   return (
     <>
@@ -256,7 +298,7 @@ const ConnectingFlightsPage = () => {
       )}
 
       {/* Display available flights */}
-      {availableFlights.length > 0 && (
+      {firstConnectingFlights.length > 0 && (
         <div style={{ marginTop: '30px' }}>
           <FormControl fullWidth style={{ marginBottom: '20px' }}>
             <InputLabel>Select an Available Flight</InputLabel>
@@ -265,7 +307,7 @@ const ConnectingFlightsPage = () => {
               onChange={handleSelectAvailableFlight}
               label="Select an Available Flight"
             >
-              {availableFlights.map((flight) => (
+              {firstConnectingFlights.map((flight) => (
                 <MenuItem key={flight.scheduleId} value={flight.scheduleId}>
                   {`${flight.flightName} - ${new Date(flight.dateTime).toLocaleString()} `}
                 </MenuItem>
@@ -283,6 +325,9 @@ const ConnectingFlightsPage = () => {
         </div>
       )}
     </div>
+    
+    
+
     
 </>
   );

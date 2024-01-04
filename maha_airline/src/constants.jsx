@@ -1,12 +1,12 @@
 export const airlinesapi = {
-  abhiramairline: {
-    name: 'Abhiram Airline',
-    apiPath: 'https://localhost:7124/api/',
+  sprityairline: {
+    name: 'Sprity Airline',
+    apiPath: 'http://192.168.10.52:90/api/',
   },
-  SanoshAirlines: {
-    name: 'SanoshAirlines',
-    apiPath: 'https://localhost:7124/api/',
-  },
+  // SanoshAirlines: {
+  //   name: 'SanoshAirlines',
+  //   apiPath: 'https://localhost:7124/api/',
+  // },
  
 };
 export const mahaairline = {

@@ -1,7 +1,10 @@
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import React, { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import { airlinesapi, mahaairline } from '../constants';
+
 import {
   Button,
   TextField,
@@ -30,6 +33,7 @@ const Page1 = () => {
   const [finalIntegratedConnectingFlights,setFinalIntegratedConnectingFlights] = useState([]);
   const navigate = useNavigate();
   const [isStateSet, setIsStateSet] = useState(false);
+  
 
   useEffect(() => {
     fetchCities();
@@ -162,6 +166,21 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
   };
 
   const handleSearch = async () => {
+    // Check if the date is not in the past
+  const currentDate = new Date();
+  const selectedDate = new Date(date);
+
+  if (selectedDate < currentDate) {
+    // Date is in the past, show an error message or take appropriate action
+    toast.error('Selected date is in the past');
+    return;
+  }
+  // Validate Passenger Count
+  if (passengerCount < 0 || passengerCount > 10) {
+    // Show an error message for invalid passenger count
+    toast.error('Passenger count should be between 0 and 10');
+    return;
+  }
     const formattedDate = new Date(date).toISOString().split(".")[0];
     const sourceAirportId = await fetchAirportId(sourceCity);
     const destinationAirportId = await fetchAirportId(destinationCity);
@@ -219,12 +238,36 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    const sourceAirportIdPromise = fetchAirportId(sourceCity);
+    const destinationAirportIdPromise = fetchAirportId(destinationCity);
+  
+    try {
+      const [sourceAirportId, destinationAirportId] = await Promise.all([
+        sourceAirportIdPromise,
+        destinationAirportIdPromise,
+      ]);
+  
+      if (sourceAirportId && destinationAirportId) {
+        setCookie('source', sourceAirportId);
+        setCookie('destination', destinationAirportId);
+        setCookie('date', date);
+        setCookie('passengerCount', passengerCount);
+  
+        if (bookingType === 'roundtrip') {
+          navigate('/roundtrip');
+    }
     if (selectedFlight) {
       setCookie('bookingData', { ...selectedFlight, passengerCount, bookingType });
       navigate('/page2');
-    } else {
+    } 
+    else {
       console.error('No flight selected');
+    }
+  }
+  }
+    catch (error) {
+      console.error('Error fetching airport details:', error);
     }
   };
 
@@ -266,7 +309,7 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
           </Select>
         </FormControl>
         <TextField
-          label="Date"
+          //label="Date"
           type="date"
           variant="outlined"
           fullWidth
@@ -283,14 +326,17 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
           onChange={(e) => setPassengerCount(e.target.value)}
           style={{ marginBottom: '10px' }}
         />
-        <TextField
-          label="Booking Type"
-          variant="outlined"
-          fullWidth
-          value={bookingType}
-          onChange={(e) => setBookingType(e.target.value)}
-          style={{ marginBottom: '10px' }}
-        />
+       <FormControl fullWidth style={{ marginBottom: '10px' }}>
+            <InputLabel>Booking Type</InputLabel>
+            <Select
+              value={bookingType}
+              onChange={(e) => setBookingType(e.target.value)}
+              label="Booking Type"
+            >
+              <MenuItem value="oneway">One Way</MenuItem>
+              <MenuItem value="roundtrip">Round Trip</MenuItem>
+            </Select>
+          </FormControl>
         <Button variant="contained" color="primary" onClick={handleSearch} fullWidth>
           Search for Flights
         </Button>
@@ -321,60 +367,10 @@ localStorage.setItem('connectionSchedules', JSON.stringify(connectionSchedules))
         >
           Next
         </Button>
+        
       </form>
     </div>
-    {/* <div className="m-5">
-          {finalIntegratedConnectingFlights.length > 0 ? (
-            finalIntegratedConnectingFlights.map((connection, index) => (
-              <div key={index} className="flex justify-between">
-                <div className="">
-                  {connection.SecondFlight.map((flight, i) => (
-                    <div
-                      key={i}
-                      className="flex flex-row-reverse border p-2 hover:cursor-pointer m-5"
-                      onClick={() =>
-                        onClick(flight, connection.FirstFlight, "connectingTrip")
-                      }
-                    >
-                      <div className="p-5">
-                        <ul>
-                          <li>{flight.flightName}</li>
-                          <li>{flight.sourceAirportId}</li>
-                          <li>{flight.destinationAirportId}</li>
-                          <li>Flight Duration: {flight.flightDuration}</li>
-                          <li>
-                            DepartureDate: {flight.dateTime.split("T")[0]}
-                          </li>
-                          <li>
-                            DepartureTime: {flight.dateTime.split("T")[1]}
-                          </li>
-                        </ul>
-                      </div>
-                      <div className="p-5">
-                        <ul>
-                          <li>{connection.FirstFlight.flightName}</li>
-                          <li>{connection.FirstFlight.sourceAirportId}</li>
-                          <li>{connection.FirstFlight.destinationAirportId}</li>
-                          <li>
-                            Flight Duration: {connection.FirstFlight.flightDuration}
-                          </li>
-                          <li>
-                            DepartureDate: {connection.FirstFlight.dateTime.split("T")[0]}
-                          </li>
-                          <li>
-                            DepartureTime: {connection.FirstFlight.dateTime.split("T")[1]}
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
-            <Typography variant="body2">No connecting flights available</Typography>
-          )}
-        </div> */}
+    <ToastContainer />
     </>
   );
 };

@@ -4,46 +4,86 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Page3 = () => {
-  const [cookies, setCookie] = useCookies(['bookingData']);
+  const [cookies, setCookie] = useCookies(['bookingData', 'selectedSeats']);
   const storedData = cookies['bookingData'];
   const [availableSeats, setAvailableSeats] = useState([]);
   const [seatDetails, setSeatDetails] = useState([]);
-  const newScheduleId = localStorage.getItem('newScheduleId');
-
   const [timer, setTimer] = useState(50); // 300 seconds = 5 minutes
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0);
   const navigate = useNavigate();
+  const scheduleIds = Object.keys(storedData).filter(key => key.startsWith('scheduleId'));
+  const [seatsFetched, setSeatsFetched] = useState(false); // New state to track seat fetching
 
+
+  useEffect(() => {
+    if (storedData.scheduleId && !seatsFetched) {
+      setCurrentScheduleIndex(1);
+      fetchAvailableSeats(); // Fetch seats for the initial schedule
+    }
+  }, [storedData.scheduleId, seatsFetched]);
+  
   const fetchAvailableSeats = async () => {
     try {
-      let scheduleId = storedData.scheduleId;
-      const newScheduleId = localStorage.getItem('newScheduleId');
-
-console.log('New Schedule ID from localStorage:', newScheduleId);
-
-if (newScheduleId !== null && newScheduleId !== undefined) {
-  scheduleId = newScheduleId;
-}
-
-  
-      console.log('Fetching seats for scheduleId:', scheduleId);
-  
+      const currentScheduleIdKey = scheduleIds[currentScheduleIndex];
+      const scheduleId = storedData[currentScheduleIdKey];
+      
+      console.log(`Fetching seats for scheduleId: ${scheduleId}`);
+      
       const response = await axios.get(`https://localhost:7124/api/Seats/ByScheduleId/${scheduleId}`);
       const data = response.data;
+
+      // Process the fetched data, set state, etc.
       setAvailableSeats(data || []);
       setSeatDetails(Array.from({ length: data.length }, () => ({ seatNo: null })));
+
+      setSeatsFetched(true);
     } catch (error) {
       console.error('Error fetching available seats:', error);
     }
   };
+
+  // useEffect(() => {
+  //   if (storedData.scheduleId && !seatsFetched) {
+  //     setCurrentScheduleIndex(0);
+  //     fetchAvailableSeats(); // Fetch seats for the initial schedule
+  //   }
+  // }, [storedData.scheduleId, seatsFetched]);
+
+  const handleBookingCompletion = async () => {
+    try {
+      await ChangeSeatStatus('unbooked');
+      setCurrentScheduleIndex(currentScheduleIndex + 1);
+
+      // Check if there are more schedules
+      if (currentScheduleIndex < scheduleIds.length) {
+        fetchAvailableSeats();
+      }
+
+      // Save selected seats to cookies
+      const selectedSeats = seatDetails
+        .filter((seat) => seat.seatNo !== null)
+        .map((seat) => seat.seatNo);
+
+      // Save seat details to bookingData cookie under seatDetails array
+      const currentScheduleIdKey = scheduleIds[currentScheduleIndex - 1];
+      const updatedBookingData = {
+        ...storedData,
+        seatDetails: [
+          ...(storedData.seatDetails || []), // Preserve existing seat details
+          { seatDetails: selectedSeats },
+        ],
+      };
   
+      setCookie('bookingData', updatedBookingData);
   
-  useEffect(() => {
-    if (storedData.scheduleId) {
-      setCurrentScheduleIndex(0);
-      fetchAvailableSeats(); // Fetch seats for the initial schedule
-    }
-  }, [storedData.scheduleId]);
+          // If there are no more schedules, navigate to the final page
+          if (currentScheduleIndex === scheduleIds.length) {
+            navigate('/finalPage');
+          }
+        } catch (error) {
+          console.error('Error during booking completion:', error);
+        }
+      };
 
   useEffect(() => {
     const newPassengerCount = cookies.passengerCount || 0;
@@ -61,19 +101,12 @@ if (newScheduleId !== null && newScheduleId !== undefined) {
     // Clear the timer when it reaches 0
     if (timer === 0) {
       clearInterval(countdown);
-      ChangeSeatStatus('unbooked');
+      handleBookingCompletion();
     }
 
     // Clean up the interval when the component is unmounted
     return () => clearInterval(countdown);
   }, [timer]);
-
-  const handleBookingCompletion = async () => {
-    await ChangeSeatStatus('unbooked');
-    setCurrentScheduleIndex((scheduleIndex) => scheduleIndex + 1);
-    setTimer(50); // Reset the timer for the next schedule
-    fetchAvailableSeats(); // Fetch seats for the next schedule
-  };
 
   const ChangeSeatStatus = async (status) => {
     try {
@@ -82,15 +115,8 @@ if (newScheduleId !== null && newScheduleId !== undefined) {
         .filter((seat) => seat.seatNo !== null)
         .map((seat) => seat.seatNo);
 
-        let scheduleId = storedData.scheduleId;
-      const newScheduleId = localStorage.getItem('newScheduleId');
-      
-      console.log('New Schedule ID from localStorage:', newScheduleId);
-  
-      if (newScheduleId) {
-        scheduleId = newScheduleId;
-      }
-
+      const currentScheduleIdKey = scheduleIds[currentScheduleIndex];
+      const scheduleId = storedData[currentScheduleIdKey];
 
       const response = await axios.put(
         `https://localhost:7124/api/Integration/${scheduleId}/${status}`,
@@ -103,11 +129,6 @@ if (newScheduleId !== null && newScheduleId !== undefined) {
       );
 
       console.log(response);
-
-      if (status === 'booked') {
-        // Redirect to the final page with booking details
-        // navigate('/finalPage', { state: { bookingDetails: /* your booking details data */ } });
-      }
     } catch (error) {
       console.error(error);
     }
@@ -121,153 +142,14 @@ if (newScheduleId !== null && newScheduleId !== undefined) {
     ]);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const userId = sessionStorage.getItem('userId');
-      const newPassengerCount = cookies.passengerCount || 0;
-      const selectedSeats = seatDetails.filter((seat) => seat.seatNo !== null);
-      setCookie('bookingData', {
-        ...storedData,
-        seatDetails: selectedSeats,
-      });
-
-      const combinedData = {
-        status: 'booked',
-        bookingType: 'oneway',
-        userId: userId,
-        seatDetails: selectedSeats.map((seat, index) => {
-          const scheduleIdIndex = Math.floor(index / newPassengerCount);
-          const seatIndex = index % newPassengerCount;
-          const scheduleIdKey =
-            scheduleIdIndex === 0 ? 'scheduleId' : `scheduleId${scheduleIdIndex}`;
-
-          return {
-            scheduleId: storedData[scheduleIdKey],
-            seatNo: seat.seatNo,
-            name: storedData.passengerDetails[seatIndex]?.name || 'Unknown',
-            age: storedData.passengerDetails[seatIndex]?.age || 0,
-            gender: storedData.passengerDetails[seatIndex]?.gender || 'Unknown',
-          };
-        }),
-      };
-
-      console.log('Combined Data:', combinedData);
-
-      const response = await fetch(
-        'https://localhost:7124/api/BookingFlightTicket/PostBookingFlightTicket',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(combinedData),
-        }
-      );
-
-      const bookingDetails = await response.json();
-      navigate('/finalPage', { state: { bookingDetails } });
-
-      if (timer > 0) {
-        await ChangeSeatStatus('booked');
-      } else {
-        handleBookingCompletion();
-      }
-    } catch (error) {
-      console.error('Error during booking submission:', error);
-    }
-  };
-
-  const handleNextButtonClick = async () => {
-    try {
-      const scheduleIds = Object.keys(storedData).filter((key) =>
-        key.startsWith('scheduleId')
-      );
-      const totalPassengers = cookies.passengerCount || 0;
-      const totalSchedules = scheduleIds.length;
-  
-      const remainingSchedules = totalSchedules - currentScheduleIndex;
-  
-      if (remainingSchedules > 0) {
-        // Check if the current passenger has booked seats for the current schedule
-        const seatsBooked = seatDetails.filter((seat) => seat.seatNo !== null).length;
-        if (seatsBooked < totalPassengers) {
-          alert(`Please select seats for all passengers for the current schedule.`);
-          return;
-        }
-  
-        // Log the current schedule ID
-        const currentScheduleIdKey = `scheduleId${currentScheduleIndex}`;
-        const currentScheduleId = storedData[currentScheduleIdKey];
-        console.log('Current Schedule ID:', currentScheduleId);
-  
-        // Change seat status
-    const status = 'booked';
-    const userId = sessionStorage.getItem('userId');
-    const selectedSeats = seatDetails
-      .filter((seat) => seat.seatNo !== null)
-      .map((seat) => seat.seatNo);
-    // Store the selected seats in the cookies
-    setCookie('bookingData', {
-      ...storedData,
-      seatDetails: selectedSeats,
-    });
-  
-        const scheduleId = storedData.scheduleId;
-        console.log('API Path Schedule ID Before:', scheduleId);
-  
-        const response = await axios.put(
-          `https://localhost:7124/api/Integration/${scheduleId}/${status}`,
-          JSON.stringify(selectedSeats),
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-  
-        console.log(response);
-  
-    // Log the new schedule ID after updating the index
-setCurrentScheduleIndex((index) => index + 1);
-localStorage.setItem('newScheduleId', newScheduleId);
-
-// Use the updated state in the callback function
-const newScheduleIdKey = `scheduleId${currentScheduleIndex + 1}`;
-const newScheduleId = storedData[newScheduleIdKey];
-console.log('New Schedule ID:', newScheduleId);
-
-
-console.log('API Path Schedule ID After:', newScheduleId);
-
-setTimer(50); // Reset the timer for the next schedule
-fetchAvailableSeats(); // Fetch seats for the next schedule
-
-      } 
-    } catch (error) {
-      console.error('Error during booking submission:', error);
-    }
-  };
-  
-  
-
   const renderSeatGrid = () => {
-    const scheduleIds = Object.keys(storedData).filter((key) =>
-      key.startsWith('scheduleId')
-    );
-    const isMultiFlight = scheduleIds.length > 1;
-  
-    const currentScheduleIdKey = `scheduleId${currentScheduleIndex}`;
-    const currentScheduleId = storedData[currentScheduleIdKey];
-  
     const passengerCount = cookies.passengerCount || 0;
-  
+
     return (
       <div>
-        {isMultiFlight && (
-          <h3 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>
-            Select Your Seat for Schedule {currentScheduleIndex + 1}
-          </h3>
-        )}
+        <h3 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>
+          Select Your Seat for Your Flight {currentScheduleIndex + 0}
+        </h3>
         <div
           style={{
             display: 'grid',
@@ -288,74 +170,25 @@ fetchAvailableSeats(); // Fetch seats for the next schedule
                 color: '#fff',
                 borderRadius: '5px',
                 cursor: 'pointer',
-                marginBottom: '10px', // Add margin to separate seats vertically
+                marginBottom: '10px',
               }}
             >
               {seat.seatNumber}
             </button>
           ))}
         </div>
-        {isMultiFlight && (
-          <div>
-            <button
-              type="button"
-              onClick={async () => {
-                await handleNextButtonClick();
-                await ChangeSeatStatus('booked');
-              }}
-              disabled={currentScheduleIndex === scheduleIds.length - 1}
-              style={{
-                marginTop: '10px',
-                padding: '15px 20px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                backgroundColor: '#3498db',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                marginRight: '10px',
-              }}
-            >
-              Next
-            </button>
-            {currentScheduleIndex === scheduleIds.length - 1 && (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                style={{
-                  marginTop: '10px',
-                  padding: '15px 20px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  backgroundColor: '#2ecc71',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                }}
-              >
-                Confirm Booking
-              </button>
-            )}
-          </div>
-        )}
       </div>
     );
   };
-  
 
   return (
     <div style={{ maxWidth: '600px', margin: 'auto', textAlign: 'center', padding: '20px' }}>
-      <h2 style={{ color: '#333', marginBottom: '20px' }}>Page 3</h2>
+      <h2 style={{ color: '#333', marginBottom: '20px' }}>Select Your Seats</h2>
       <form>{renderSeatGrid()}</form>
       <p style={{ color: '#777', margin: '10px' }}>Time remaining: {timer} seconds</p>
       <button
         type="button"
-        onClick={async () => {
-          await handleNextButtonClick();
-          await ChangeSeatStatus('booked');
-        }}
+        onClick={() => handleBookingCompletion()}
         style={{
           marginTop: '10px',
           padding: '15px 20px',
@@ -368,24 +201,7 @@ fetchAvailableSeats(); // Fetch seats for the next schedule
           cursor: 'pointer',
         }}
       >
-        Next
-      </button>
-      <button
-        type="button"
-        onClick={handleSubmit}
-        style={{
-          marginTop: '10px',
-          padding: '15px 20px',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          backgroundColor: '#2ecc71',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-        }}
-      >
-        Confirm Booking
+        Continue
       </button>
     </div>
   );

@@ -150,7 +150,7 @@ const AirportManagement = () => {
                     <Table>
                       <TableHead>
                         <TableRow>
-                          <TableCell>Airport ID</TableCell>
+                          <TableCell>Airport Code</TableCell>
                           <TableCell>Airport Name</TableCell>
                           <TableCell>City</TableCell>
                           <TableCell>State</TableCell>
